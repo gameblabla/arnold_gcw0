@@ -1,0 +1,9 @@
+[Desktop Entry]
+Type=Application
+Name=Arnold
+Comment=Amstrad CPC emulator
+Exec=arnold -cart %f
+Icon=icon
+Terminal=false
+Categories=emulators;
+X-OD-NeedsDownscaling=false
