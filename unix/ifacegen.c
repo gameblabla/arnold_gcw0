@@ -1,6 +1,6 @@
-/*
+/* 
  *  Arnold emulator (c) Copyright, Kevin Thacker 1995-2001
- *
+ *  
  *  This file is part of the Arnold emulator source code distribution.
  *
  *  This program is free software; you can redistribute it and/or modify
@@ -55,7 +55,7 @@ BOOL Multiface_LoadRomFromFile(const MULTIFACE_ROM_TYPE RomType, const char *pFi
 		Status = Multiface_SetRomData(RomType, pRomData, RomSize);
 
 		free(pRomData);
-
+	
 		return TRUE;
 	}
 
@@ -85,9 +85,8 @@ BOOL GenericInterface_InsertDiskImage(int DriveID, const char*Filename)
 		setDiskDirectory(Filename);
 
 		free(pDiskImage);
-
-		/* This fixes a segfault */
-		return bStatus==ARNOLD_STATUS_OK;
+	
+		return bStatus;
 	}
 
 	return FALSE;
@@ -104,7 +103,7 @@ BOOL	GenericInterface_LoadRom(int RomIndex, const char*FilenameBuffer)
 		ExpansionRom_SetRomData(pRomData, RomDataSize, RomIndex);
 
 		setInsertedRomPath(RomIndex, FilenameBuffer);
-
+	
 		free(pRomData);
 
 		return TRUE;
@@ -127,9 +126,8 @@ BOOL	GenericInterface_LoadSnapshot(const char*SnapshotFilename)
 		bStatus = Snapshot_Insert(pSnapshotData, SnapshotDataLength);
 
 		free(pSnapshotData);
-
-		/* This fixes a segfault */
-		return bStatus==ARNOLD_STATUS_OK;
+	
+		return bStatus;
 	}
 
 	return FALSE;
@@ -139,7 +137,7 @@ BOOL	GenericInterface_SnapshotSave(const char*FilenameBuffer, int SnapshotVersio
 {
 	unsigned long nLength;
 	unsigned char *pSnapshotData;
-
+	
 	nLength = Snapshot_CalculateOutputSize(SnapshotSize, SnapshotVersion);
 
 	pSnapshotData = malloc(nLength);
@@ -149,7 +147,7 @@ BOOL	GenericInterface_SnapshotSave(const char*FilenameBuffer, int SnapshotVersio
 		Snapshot_GenerateOutputData(pSnapshotData, SnapshotSize, SnapshotVersion);
 
 		SaveFile(FilenameBuffer, pSnapshotData, nLength);
-
+	
 		free(pSnapshotData);
 	}
 
@@ -172,7 +170,7 @@ BOOL	GenericInterface_InsertTape(const char*Filename)
 		setInsertedTapePath(Filename);
 
 		free(pTapeImage);
-
+	
 		if (!bStatus)
 		{
 			// now attempt samples..

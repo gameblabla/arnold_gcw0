@@ -17,11 +17,21 @@
  *  along with this program; if not, write to the Free Software
  *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
-#ifdef HAVE_ALSA
 
+#include "../cpc/host.h"
 #include "alsasound.h"
 #include "alsasound-common.h"
-#include "../cpc/host.h"
+
+#ifndef HAVE_ALSA
+
+BOOL	alsa_AudioPlaybackPossible(void) { return FALSE; }
+BOOL	alsa_LockAudioBuffer(unsigned char **pBlock1, unsigned long
+*pBlock1Size, unsigned char **pBlock2, unsigned long *pBlock2Size, int
+AudioBufferSize) { return FALSE; }
+void	alsa_UnLockAudioBuffer(void) {}
+
+#else
+
 #include "display.h"
 #include "gtkui.h"
 #include <sys/time.h>
@@ -66,8 +76,7 @@ AudioBufferSize)
 void	alsa_UnLockAudioBuffer(void)
 {
 	signed short *ptr;
-	int err;
-	long cptr;
+	int err, cptr;
 	static int skipfirst = 1;
 
 	//fprintf(stderr,"alsa_UnLockAudioBuffer_writei commitBufferSize: %i\n", commitBufferSize);
@@ -105,4 +114,3 @@ void	alsa_UnLockAudioBuffer(void)
 }
 
 #endif	/* HAVE_ALSA */
-

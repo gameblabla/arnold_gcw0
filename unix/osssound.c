@@ -1,6 +1,6 @@
-/*
+/* 
  *  Arnold emulator (c) Copyright, Kevin Thacker 1995-2001
- *
+ *  
  *  This file is part of the Arnold emulator source code distribution.
  *
  *  This program is free software; you can redistribute it and/or modify

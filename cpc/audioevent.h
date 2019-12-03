@@ -1,6 +1,6 @@
-/*
+/* 
  *  Arnold emulator (c) Copyright, Kevin Thacker 1995-2001
- *
+ *  
  *  This file is part of the Arnold emulator source code distribution.
  *
  *  This program is free software; you can redistribute it and/or modify
@@ -24,26 +24,26 @@
 #define AUDIO_EVENT_DIGIBLASTER	0x0002
 #define AUDIO_EVENT_TAPE		0x0004
 
-typedef struct
+typedef struct 
 {
 	unsigned long PSG_Register;
 	unsigned long PSG_RegisterData;
 } PSG_EVENT;
 
-typedef struct
+typedef struct 
 {
 	unsigned long Volume;
 	unsigned long pad0;
 } DIGIBLASTER_EVENT;
 
-typedef struct
+typedef struct 
 {
 	unsigned long Volume;
 	unsigned long pad0;
 } TAPE_EVENT;
 
 
-typedef struct
+typedef struct 
 {
 	unsigned long NopCount;
 	unsigned long Type;
@@ -64,7 +64,7 @@ void	AudioEvent_Finish(void);
 
 //void	AudioEvent_TraverseAudioEventsDebug(DEBUG_HANDLE DebugHandle);
 int		AudioEvent_TraverseAudioEventsAndBuildSampleData(int,int);
-void	AudioEvent_SetFormat(int SampleRate, int SampleBits, int SampleChannels, float FramesPerSec);
+void	AudioEvent_SetFormat(int SampleRate, int SampleBits, int SampleChannels);
 
 void	Audio_Reset(void);
 

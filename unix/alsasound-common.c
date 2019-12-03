@@ -1,6 +1,6 @@
-/*
+/* 
  *  Arnold emulator (c) Copyright, Kevin Thacker 1995-2001
- *
+ *  
  *  This file is part of the Arnold emulator source code distribution.
  *
  *  This program is free software; you can redistribute it and/or modify
@@ -17,11 +17,27 @@
  *  along with this program; if not, write to the Free Software
  *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
-#ifdef HAVE_ALSA
+
+#include "../cpc/host.h"
+
+BOOL alsa_audiodev_is_open = FALSE;
+
+BOOL	alsa_Throttle(void)
+{
+	if (!alsa_audiodev_is_open) return FALSE;
+	return TRUE;
+}
+
+#ifndef HAVE_ALSA
+
+BOOL    alsa_open_audio(BOOL use_mmap) { return FALSE; }
+void    alsa_close_audio(void) {}
+SOUND_PLAYBACK_FORMAT *alsa_GetSoundPlaybackFormat(void) { return NULL; }
+
+#else
 
 #define __ALSASOUND_COMMON_C__ 1
 
-#include "../cpc/host.h"
 #include "display.h"
 #include "gtkui.h"
 #include <sys/time.h>
@@ -43,7 +59,7 @@ unsigned int chn;
 snd_pcm_channel_area_t *areas;
 //int commitBufferSize;
 
-char *device = "plughw:0,0";                     /* playback device */
+char *device = "default";                     /* playback device */
 //char *device = "hw:0,0";                       /* playback device */
 snd_pcm_format_t format_16 = SND_PCM_FORMAT_S16; /* sample format 16 */
 snd_pcm_format_t format_8 = SND_PCM_FORMAT_U8;   /* sample format 8 */
@@ -56,8 +72,6 @@ unsigned int periods = 2;			 /* number of periods */
 
 snd_output_t *output = NULL;
 snd_pcm_uframes_t offset;
-
-BOOL alsa_audiodev_is_open = FALSE;
 
 int set_hwparams(snd_pcm_t *handle,
                         snd_pcm_hw_params_t *params,
@@ -169,7 +183,7 @@ int set_swparams(snd_pcm_t *handle, snd_pcm_sw_params_t *swparams)
 /*
  *   Underrun and suspend recovery
  */
-
+ 
 int xrun_recovery(snd_pcm_t *handle, int err)
 {
         if (err == -EPIPE) {    /* under-run */
@@ -264,12 +278,6 @@ SOUND_PLAYBACK_FORMAT *alsa_GetSoundPlaybackFormat(void)
 	SoundFormat.Frequency = rate;
 	fprintf(stderr,"alsa_GetSoundPlaybackFormat channels:%i, BitsPerSample: %i, Frequency: %i\n", SoundFormat.NumberOfChannels, SoundFormat.BitsPerSample, SoundFormat.Frequency);
 	return &SoundFormat;
-}
-
-BOOL	alsa_Throttle(void)
-{
-	if (!alsa_audiodev_is_open) return FALSE;
-	return TRUE;
 }
 
 #endif	/* HAVE_ALSA */

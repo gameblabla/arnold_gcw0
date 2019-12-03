@@ -1,6 +1,6 @@
 # Makefile for Arnold
 
-CC = mipsel-linux-gcc
+CC = /opt/gcw0-toolchain-static/bin/mipsel-linux-gcc
 BIND = $(CC)
 #   CFLAGS    flags for C compile
 #   LFLAGS1   flags after output file spec, before obj file list
@@ -8,16 +8,16 @@ BIND = $(CC)
 
 # Comment to following two lines to disable SDL
 SDLINC = -D_REENTRANT
-SDLLIB = -L/usr/lib -lSDL -lpthread
+SDLLIB = -lSDL
 
 # Comment to following two lines to disable ALSA
 ALSAINC = 
-ALSALIB =  -lasound -lm -ldl -lpthread
+ALSALIB =  -lasound -lm
 
 #-Wall for max warnings!
-CFLAGS =  -s -Ofast -mips32r2 $(SDLINC) $(ALSAINC) -DPACKAGE_NAME=\"\" -DPACKAGE_TARNAME=\"\" -DPACKAGE_VERSION=\"\" -DPACKAGE_STRING=\"\" -DPACKAGE_BUGREPORT=\"\" -DSTDC_HEADERS=1 -DHAVE_SYS_TYPES_H=1 -DHAVE_SYS_STAT_H=1 -DHAVE_STDLIB_H=1 -DHAVE_STRING_H=1 -DHAVE_MEMORY_H=1 -DHAVE_STRINGS_H=1 -DHAVE_INTTYPES_H=1 -DHAVE_STDINT_H=1 -DHAVE_UNISTD_H=1 -DHAVE_SDL=1 -DHAVE_LIBASOUND=1 -DHAVE_ALSA=1 -DHAVE_SYS_SOUNDCARD_H=1 -I. -DUNIX -DCPC_LSB_FIRST -Wall -Wno-unused
+CFLAGS = -Ofast -DCPC_NODEBUGGER -flto -mips32r2 -DHAVE_ALSA $(SDLINC) $(ALSAINC) -DPACKAGE_NAME=\"\" -DPACKAGE_TARNAME=\"\" -DPACKAGE_VERSION=\"\" -DPACKAGE_STRING=\"\" -DPACKAGE_BUGREPORT=\"\" -DSTDC_HEADERS=1 -DHAVE_SYS_TYPES_H=1 -DHAVE_SYS_STAT_H=1 -DHAVE_STDLIB_H=1 -DHAVE_STRING_H=1 -DHAVE_MEMORY_H=1 -DHAVE_STRINGS_H=1 -DHAVE_INTTYPES_H=1 -DHAVE_STDINT_H=1 -DHAVE_UNISTD_H=1 -DHAVE_SDL=1 -DHAVE_LIBASOUND=1 -DHAVE_SYS_SOUNDCARD_H=1 -I. -DUNIX -DCPC_LSB_FIRST -Wall -Wno-unused
 LFLAGS1 = 
-LFLAGS2 = -lasound -lm -ldl -lpthread $(SDLLIB) $(ALSALIB)
+LFLAGS2 = -lc -lgcc $(SDLLIB) $(ALSALIB) -flto -s
 
 TARGET_CPU = i686
 
@@ -38,8 +38,7 @@ CPC_O=	cpc/arnold.o cpc/asic.o cpc/audioevent.o cpc/bmp.o cpc/cpc.o \
 UNIX_O= unix/main.o unix/host.o unix/global.o unix/display.o \
 	unix/display_sdl.o unix/sdlsound.o unix/configfile.o \
 	unix/roms.o unix/ifacegen.o unix/alsasound.o unix/alsasound-mmap.o \
-	unix/alsasound-common.o unix/osssound.o unix/sound.o \
-	unix/pulseaudiosound.o
+	unix/alsasound-common.o unix/osssound.o unix/sound.o 
 
 ROMS_BIN=	roms/amsdose/amsdos.rom,roms/cpc464e/os.rom,roms/cpc464e/basic.rom,roms/cpc664e/os.rom,roms/cpc664e/basic.rom,roms/cpc6128e/os.rom,roms/cpc6128e/basic.rom,roms/cpc6128s/os.rom,roms/cpc6128s/basic.rom,roms/cpcplus/system.cpr,roms/kcc/kccos.rom,roms/kcc/kccbas.rom
 

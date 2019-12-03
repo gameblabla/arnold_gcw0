@@ -1,6 +1,6 @@
-/*
+/* 
  *  Arnold emulator (c) Copyright, Kevin Thacker 1995-2001
- *
+ *  
  *  This file is part of the Arnold emulator source code distribution.
  *
  *  This program is free software; you can redistribute it and/or modify
@@ -31,9 +31,6 @@ void	CPCEmulation_InitialiseDefaultSetup(void);
 void	CPCEmulation_EnableDebugger(BOOL State);
 BOOL	CPCEmulation_CheckEndianness(void);
 unsigned long CPCEmulation_GetPercentRelativeSpeed(void);
-/* Set also audio frames per second */
-void	CPC_SetAudioActive(BOOL State,float fps);
-/* CPC The next generation - Introduce Warp speed */
-void  CPC_SetWarpFactor(int);
+void	CPC_SetAudioActive(BOOL State);
 BOOL	CPC_IsAudioActive(void);
 #endif

@@ -17,17 +17,26 @@
  *  along with this program; if not, write to the Free Software
  *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
-#ifndef __VOC_HEADER_INCLUDED__
-#define __VOC_HEADER_INCLUDED__
-
-#include "sampload.h"
-
-BOOL	VOC_Validate(const char *);
-void	VOC_Open(SAMPLE_AUDIO_STREAM *);
-unsigned char VOC_GetDataByte(SAMPLE_AUDIO_STREAM *pAudioStream);
+#ifndef __DIRSTUFF_HEADER_INCLUDED__
+#define __DIRSTUFF_HEADER_INCLUDED__
 
 
+typedef enum
+{
+	EMULATOR_DIR = 0,
+	EMULATOR_ROM_DIR,
+	EMULATOR_ROM_CPCAMSDOS_DIR,
+	EMULATOR_ROM_CPC464_DIR,
+	EMULATOR_ROM_CPC664_DIR,
+	EMULATOR_ROM_CPC6128_DIR,
+	EMULATOR_ROM_CPCPLUS_DIR,
+	EMULATOR_ROM_KCCOMPACT_DIR,
+	LAST_DIR
+} LOCATION_ID;
 
-
+void	DirStuff_Initialise(void);
+void	DirStuff_Finish(void);
+void	SetDirectoryForLocation(LOCATION_ID, unsigned char *);
+void	ChangeToLocationDirectory(LOCATION_ID);
 
 #endif

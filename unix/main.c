@@ -23,7 +23,7 @@
 //#include "../cpc/dirstuff.h"
 #include "ifacegen.h"
 #include "configfile.h"
-//#include "gtkui.h"
+#include "gtkui.h"
 #include "../cpc/messages.h"
 #include "roms.h"
 #include <stdio.h>
@@ -190,15 +190,10 @@ int main(int argc, char *argv[])
 		printf("-driveb <string> = specify disk image to insert into drive B\n");
 		printf("-cart <string> = specify CPC+ cartridge to insert\n");
 		printf("-frameskip <integer> = specify frame skip (0-5)\n");
-		printf("-fps <integer> = specify frames per second\n");
-		printf("-sync = try to synchronize with screen refresh rate\n");
-		#ifdef HAVE_GL
-		printf("-opengl = use OpenGL for smooth zooming in fullscreen mode\n");
-		#endif
 		printf("-crtctype <integer> = specify crtc type (0,1,2,3,4)\n");
 		printf("-tape <string> = specify tape image\n");
 		printf("-cpctype <integer> = specify CPC type (0=CPC464, 1=CPC664, 2=CPC6128, 3=CPC464+, 4=CPC6128+\n");
-		printf("-snapshort <string> = specify snapshot to load\n");
+		printf("-snapshot <string> = specify snapshot to load\n");
 		printf("-kbdtype <integer> = specify keyboard type (0=QWERTY, 1=QWERTZ, 2=AZERTY)\n");
 		printf("-soundplugin <string> = specify sound output plugin\n                         (NONE, OSS, ALSA, ALSAMMAP, SDL, PULSE, AUTO)\n");
 #ifdef HAVE_SDL
@@ -220,11 +215,6 @@ void init_main(int argc, char *argv[]) {
 		{"driveb", 1, 0, 'b'},
 		{"cart", 1, 0, 'c'},
 		{"frameskip", 1, 0, 'f'},
-		{"fps", 1, 0, 'z'},
-		{"sync", 0, 0, 'y'},
-		#ifdef HAVE_GL
-		{"opengl", 1, 0, 'g'},
-		#endif
 		{"crtctype", 1, 0, 'r'},
 		{"cpctype", 1, 0, 'p'},
 		{"snapshot", 1, 0, 's'},
@@ -239,10 +229,6 @@ void init_main(int argc, char *argv[]) {
 	};
 	int c;
 	int digit_optind = 0;
-	/* Default is 50 frames per second without sync to screen refresh rate */
-	int fps = 50;
-	int sync = 0;
-	int refresh;
 	char *tape = NULL;
 	char *drivea = NULL;
 	char *driveb = NULL;
@@ -290,18 +276,6 @@ void init_main(int argc, char *argv[]) {
 #endif
 			case 'f':
 				frameskip = optarg;
-				break;
-			case 'y':
-				/* Activate sync to screen refresh rate */
-				sync=1;
-#ifdef HAVE_GL
-				/* Activate sync on nVIDIA chips */
-				putenv("__GL_SYNC_TO_VBLANK=1");
-#endif
-				break;
-			case 'z':
-				/* Set refresh rate in Hz directly */
-				fps = atoi(optarg);
 				break;
 			case 'r':
 				crtctype = optarg;
@@ -409,7 +383,7 @@ void init_main(int argc, char *argv[]) {
 				default:
 				{
 				ConfigCPC6128();
-				}
+}
 				break;
 
 			}
@@ -436,11 +410,15 @@ void init_main(int argc, char *argv[]) {
 		printf("soundplugin: %i (%s)\n",sound_plugin,soundpluginNames[sound_plugin]);
 
 
+#ifdef HAVE_GTK
+		fprintf(stderr, "Initializing GTK+\n");
+		gtkui_init(argc, argv);
+#endif
 
 #ifdef HAVE_SDL
 		fprintf(stderr, "Initializing SDL\n");
 		if ( SDL_Init(SDL_INIT_AUDIO|SDL_INIT_VIDEO|SDL_INIT_TIMER
-			|SDL_INIT_JOYSTICK|SDL_INIT_NOPARACHUTE) < 0 ) {
+			|SDL_INIT_JOYSTICK) < 0 ) {
 			fprintf(stderr, "SDL could not be initialized: %s\n", SDL_GetError());
 			exit(1);
 		}
@@ -452,31 +430,6 @@ void init_main(int argc, char *argv[]) {
 		Host_InitDriveLEDIndicator();
 
 		Render_SetDisplayWindowed();
-
-
-		/* This hardly ever works, because SDL_Flip is often not capable of waiting for a vertical retrace */
-		if (sync) {
-			/* Synchronize to vertical retrace */
-#ifndef HAVE_SDL
-			fprintf(stderr,"SDL must be present to enable vertical sync.\n");
-#else
-			refresh = sdl_RefreshRate();
-			if (!refresh) fprintf(stderr,"Refresh rate cannot be determined, using %d FPS.\n",fps);
-			else {
-				fps = refresh;
-				fprintf(stderr,"Running Arnold with screen refresh rate of %d FPS.\n",fps);
-			}
-#endif
-		}
-		/* Set refresh rate */
-		fprintf(stderr,"Running emulation with %d fps\n",fps);
-#ifdef HAVE_SDL
-		sdl_SetFPS(fps);
-#endif
-
-		/* Set also fps in Arnold */
-		CPC_SetAudioActive(TRUE,fps);
-		printf("%s", Messages[77]);
 
 #ifdef HAVE_SDL
 		if (doubled) {
@@ -493,14 +446,13 @@ void init_main(int argc, char *argv[]) {
 #endif
 		printf("%s", Messages[76]);
 
+		CPC_SetAudioActive(TRUE);
+
+		printf("%s", Messages[77]);
+
 		/* Enter GTK+ event loop when GTK+ is compiled in. Use own main loop
 		 * otherwise. */
 #ifdef HAVE_GTK
-	  /*while (1)
-	  { CPCEmulation_Run();
-	    SDL_Delay(20); }*/
-		/* gtkui_init must be called after CPC_SetAudioActive */
-		gtkui_init(argc, argv);
 		gtkui_run();
 #else
 	    CPCEmulation_Run();

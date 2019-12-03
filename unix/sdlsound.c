@@ -22,7 +22,7 @@
 #include "sdlsound.h"
 #include "../cpc/host.h"
 #include "display.h"
-//#include "gtkui.h"
+#include "gtkui.h"
 #include <sys/time.h>
 #include <unistd.h>
 #include <stdio.h>

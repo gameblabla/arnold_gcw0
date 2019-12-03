@@ -1,8 +1,8 @@
 /* gtkui.h */
 
 #ifdef HAVE_GTK
-/*#include <gtk/gtk.h>
+#include <gtk/gtk.h>
 void gtkui_init(int argc, char **argv);
-void gtkui_run( void );*/
+void gtkui_run( void );
 #endif
 

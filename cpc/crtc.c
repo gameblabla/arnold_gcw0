@@ -28,8 +28,8 @@
 /* THIS CODE IS QUITE SLOW AND COMPLEX, IT WOULD BE GOOD TO SPEED IT UP A LOT AND FIX MORE BUGS IN IT */
 void	CRTC_MonitorReset(void);
 
-//#define SIMPLE_MONITOR_EMULATION
-//#define HD6845S
+#define SIMPLE_MONITOR_EMULATION
+#define HD6845S
 /*#define WIP */
 
 #include "crtc.h"
@@ -1583,7 +1583,16 @@ void    CRTC_GetGraphicsDataPLUS_TrueColour(void)
 
 	   /* Line, Column, ActualX, ActualY */
 		Mask = ASIC_BuildDisplayReturnMaskWithPixels(ASICCRTC_Line /*VisibleRasterCount*/,CRTC_InternalState.HCount, /*MonitorHorizontalCount, MonitorScanLineCount,*/CRTC_InternalState.Pixels);
+
+/*		if (Mask==0x0ffffffff)
+		{
+			Render_TrueColourRGB_PutDataWord(CRTC_InternalState.Monitor_State.MonitorHorizontalCount, CRTC_InternalState.GraphicsLong, CRTC_InternalState.Monitor_State.MonitorScanLineCount);
+		}
+		else
+		{
+*/
 		Render_TrueColourRGB_PutDataWordPLUS(CRTC_InternalState.Monitor_State.MonitorHorizontalCount, CRTC_InternalState.GraphicsLong, CRTC_InternalState.Monitor_State.MonitorScanLineCount, Mask,CRTC_InternalState.Pixels);
+/*		} */
 }
 
 
@@ -1712,10 +1721,10 @@ void CRTC_DoHsync(void)
 
 	GateArray_Update();
 
-	/*if (CPCHardware==CPC_HW_KCCOMPACT)
+	if (CPCHardware==CPC_HW_KCCOMPACT)
 	{
 		KCC_Update();
-	}*/
+	}
 }
 
 /*------------------------------------------------------------------------------*/
@@ -1737,6 +1746,31 @@ static void     CRTC_InitVsync(void)
 		CRTC_InternalState.VerticalSyncCount = 0;
 		CRTC_SetFlag(CRTC_VSCNT_FLAG);
 	}
+
+#if 0
+	/* it has not been triggered.. */
+	if (!(CRTC_InternalState.CRTC_Flags & CRTC_VSYNC_TRIGGERED_FLAG))
+	{
+		/* re-set counter only if it is active */
+		if (!(CRTC_InternalState.CRTC_Flags & CRTC_VSCNT_FLAG))
+		{
+			/* counter is not active! */
+
+			CRTC_SetFlag(CRTC_VSYNC_TRIGGERED_FLAG);
+
+			/* reset vertical sync count */
+			CRTC_InternalState.VerticalSyncCount=0;
+
+			/* enable counter */
+			CRTC_SetFlag(CRTC_VSCNT_FLAG);
+
+
+			CRTC_InterlaceControl_VsyncStart();
+
+
+		}
+	}
+#endif
 }
 
 /*static void CRTC_RenderCycles(); */
@@ -1746,6 +1780,24 @@ static void     CRTC_SetRenderingFunction(void)
 {
 /*	int PreviousRenderType = CRTC_InternalState.CRTC_RenderType; */
 
+#if 0
+
+    /* set graphics rendering function - either graphics or border */
+    if (
+		(CRTC_InternalState.CRTC_Flags & CRTC_HDISP_FLAG) &&
+		(CRTC_InternalState.CRTC_Flags & CRTC_VDISP_FLAG) &&
+		(!(CRTC_InternalState.CRTC_Flags & CRTC_R8DT_FLAG))
+		)
+    {
+		/* render graphics */
+       CRTC_InternalState.CRTC_RenderType = CRTC_RENDER_GRAPHICS;
+    }
+    else
+    {
+		/* render border */
+        CRTC_InternalState.CRTC_RenderType = CRTC_RENDER_BORDER;
+    }
+#endif
     /* set graphics rendering function - either graphics or border */
     if (
 		((CRTC_InternalState.CRTC_Flags & (CRTC_HDISP_FLAG | CRTC_VDISP_FLAG | CRTC_R8DT_FLAG))==(CRTC_HDISP_FLAG | CRTC_VDISP_FLAG))
@@ -1754,10 +1806,11 @@ static void     CRTC_SetRenderingFunction(void)
 		/* render graphics */
        CRTC_InternalState.CRTC_RenderType = CRTC_RENDER_GRAPHICS;
     }
-   /* else
+    else
     {
+		/* render border */
         CRTC_InternalState.CRTC_RenderType = CRTC_RENDER_BORDER;
-    }*/
+    }
 
     /* change rendering function if we are in vsync or hsync, or
     reg 8 is set to max delay + ASIC extend border is set */
@@ -3384,7 +3437,7 @@ void	Graphics_Update(void)
 
 		case CRTC_RENDER_BORDER:
 		{
-			//CRTC_InternalState.pCRTC_RenderBorder();
+			CRTC_InternalState.pCRTC_RenderBorder();
 		}
 		break;
 
@@ -3716,7 +3769,19 @@ void CRTC_DoCycles(int Cycles)
                             CRTC_InternalState.MAStore = CRTC_InternalState.MALine + CRTC_InternalState.HCount;
                     }
            }
+#if 0
+#ifdef WIP
+				if (CRTC_InternalState.Monitor_State.CharsAfterHsync==50)
+				{
+					CRTC_InternalState.Monitor_State.MonitorFlags|=MONITOR_IN_HSYNC;
+				}
 
+				if (CRTC_InternalState.Monitor_State.CharsAfterHsync==66)
+				{
+					CRTC_DoMonitorHsync();
+				}
+#endif
+#endif
 		Graphics_Update();
 
 	}

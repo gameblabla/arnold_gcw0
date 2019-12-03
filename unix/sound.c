@@ -1,6 +1,6 @@
-/*
+/* 
  *  Arnold emulator (c) Copyright, Kevin Thacker 1995-2001
- *
+ *  
  *  This file is part of the Arnold emulator source code distribution.
  *
  *  This program is free software; you can redistribute it and/or modify
@@ -19,27 +19,26 @@
  */
 
 #include "../cpc/cpcglob.h"
+#include "sound.h"
 #include "alsasound-common.h"
 #include "osssound.h"
-#include "pulseaudiosound.h"
-
-#define SOUND_PLUGIN_NONE 0
-#define SOUND_PLUGIN_OSS 1
-#define SOUND_PLUGIN_ALSA 2
-#define SOUND_PLUGIN_ALSA_MMAP 3
-#define SOUND_PLUGIN_SDL 4
-#define SOUND_PLUGIN_PULSE 5
-#define SOUND_PLUGIN_AUTO 6
+#include <string.h>
 
 extern int sound_plugin;
 
-char *soundpluginNames[] = {"NONE", "OSS", "ALSA", "ALSAMMAP", "SDL", "PULSE", "AUTO"};
-#define NR_SOUND_PLUGINS 7
+const char *soundpluginNames[] = {
+	[SOUND_PLUGIN_NONE] = "NONE",
+	[SOUND_PLUGIN_OSS] = "OSS",
+	[SOUND_PLUGIN_ALSA] ="ALSA",
+	[SOUND_PLUGIN_ALSA_MMAP] = "ALSAMMAP",
+	[SOUND_PLUGIN_SDL] = "SDL",
+	[SOUND_PLUGIN_AUTO] = "AUTO"
+};
 
-void convert8to16bit(signed short *ptr, long cptr) {
+void convert8to16bit(signed short *ptr, int cptr) {
 	signed short *dest;
 	unsigned char *src;
-	long srcbytes;
+	int srcbytes;
 	//fprintf(stderr,"convert8to16bit ptr: %i, cptr:%i\n", ptr, cptr);
 	srcbytes = cptr*4;
 	dest = ptr + (srcbytes-2);
@@ -51,9 +50,9 @@ void convert8to16bit(signed short *ptr, long cptr) {
 	}
 }
 
-int getSoundplugin(char *s) {
+int getSoundplugin(const char *s) {
 	int i;
-	for (i=0; i<NR_SOUND_PLUGINS; i++) {
+	for (i=0; i<SOUND_PLUGIN_MAX; i++) {
 		if (!strcmp(soundpluginNames[i],s)) {
 			return i;
 		}
@@ -62,19 +61,12 @@ int getSoundplugin(char *s) {
 }
 
 int autoDetectSoundplugin() {
-#ifdef HAVE_PULSE
-	if (pulseaudio_AudioPlaybackPossible()) {
-		return SOUND_PLUGIN_PULSE;
-	}
-#endif
-	if (oss_AudioPlaybackPossible()) {
-		return SOUND_PLUGIN_OSS;
-	}
-#ifdef HAVE_ALSA
 	if (alsa_AudioPlaybackPossible()) {
 		return SOUND_PLUGIN_ALSA;
 	}
-#endif
+	if (oss_AudioPlaybackPossible()) {
+		return SOUND_PLUGIN_OSS;
+	}
 	return SOUND_PLUGIN_NONE;
 }
 
@@ -82,18 +74,11 @@ BOOL sound_throttle(void) {
 	switch(sound_plugin) {
 		case SOUND_PLUGIN_OSS:
 			return oss_Throttle();
-#ifdef HAVE_ALSA
 		case SOUND_PLUGIN_ALSA:
 			return alsa_Throttle();
 		case SOUND_PLUGIN_ALSA_MMAP:
 			return alsa_Throttle();
-#endif
-		case SOUND_PLUGIN_SDL:
-			return FALSE;
-#ifdef HAVE_PULSE
-		case SOUND_PLUGIN_PULSE:
-			return pulseaudio_Throttle();
-#endif
+		case SOUND_PLUGIN_SDL: /* fall through */
 		default:
 			return FALSE;
 	}

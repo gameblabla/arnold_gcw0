@@ -6,4 +6,4 @@ Exec=arnold -cart %f
 Icon=icon
 Terminal=false
 Categories=emulators;
-X-OD-NeedsDownscaling=false
+X-OD-NeedsDownscaling=true

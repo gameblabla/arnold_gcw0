@@ -33,7 +33,7 @@ PULSEINC =
 PULSELIB = 
 
 #-Wall for max warnings!
-CFLAGS =  -pg -O2  $(SDLINC) $(ALSAINC) $(PULSEINC) -DPACKAGE_NAME=\"\" -DPACKAGE_TARNAME=\"\" -DPACKAGE_VERSION=\"\" -DPACKAGE_STRING=\"\" -DPACKAGE_BUGREPORT=\"\" -DSTDC_HEADERS=1 -DHAVE_SYS_TYPES_H=1 -DHAVE_SYS_STAT_H=1 -DHAVE_STDLIB_H=1 -DHAVE_STRING_H=1 -DHAVE_MEMORY_H=1 -DHAVE_STRINGS_H=1 -DHAVE_INTTYPES_H=1 -DHAVE_STDINT_H=1 -DHAVE_UNISTD_H=1 -DHAVE_SDL=1 -DHAVE_LIBASOUND=1 -DHAVE_ALSA=1 -DHAVE_SYS_SOUNDCARD_H=1 $(X11INC) -I. -DUNIX -DCPC_LSB_FIRST -Wall -Wno-unused
+CFLAGS =  -pg -O2 -DCPC_NODEBUGGER $(SDLINC) $(ALSAINC) $(PULSEINC) -DPACKAGE_NAME=\"\" -DPACKAGE_TARNAME=\"\" -DPACKAGE_VERSION=\"\" -DPACKAGE_STRING=\"\" -DPACKAGE_BUGREPORT=\"\" -DSTDC_HEADERS=1 -DHAVE_SYS_TYPES_H=1 -DHAVE_SYS_STAT_H=1 -DHAVE_STDLIB_H=1 -DHAVE_STRING_H=1 -DHAVE_MEMORY_H=1 -DHAVE_STRINGS_H=1 -DHAVE_INTTYPES_H=1 -DHAVE_STDINT_H=1 -DHAVE_UNISTD_H=1 -DHAVE_SDL=1 -DHAVE_LIBASOUND=1 -DHAVE_ALSA=1 -DHAVE_SYS_SOUNDCARD_H=1 $(X11INC) -I. -DUNIX -DCPC_LSB_FIRST -Wall -Wno-unused
 #-g3 -pg -dm -dp -a
 #LFLAGS1 =  -lasound -lm -ldl -lpthread $(GTKLIB) $(SDLLIB) $(ALSALIB) $(PULSELIB) $(X11LIBS)
 LFLAGS1 = 
@@ -63,8 +63,7 @@ CPC_O=	cpc/arnold.o cpc/asic.o cpc/audioevent.o cpc/bmp.o cpc/cpc.o \
 UNIX_O= unix/main.o unix/host.o unix/global.o unix/display.o \
 	unix/display_sdl.o unix/sdlsound.o unix/configfile.o \
 	unix/roms.o unix/ifacegen.o unix/alsasound.o unix/alsasound-mmap.o \
-	unix/alsasound-common.o unix/osssound.o unix/sound.o \
-	unix/pulseaudiosound.o
+	unix/alsasound-common.o unix/osssound.o unix/sound.o
 
 ROMS_BIN=	roms/amsdose/amsdos.rom,roms/cpc464e/os.rom,roms/cpc464e/basic.rom,roms/cpc664e/os.rom,roms/cpc664e/basic.rom,roms/cpc6128e/os.rom,roms/cpc6128e/basic.rom,roms/cpc6128s/os.rom,roms/cpc6128s/basic.rom,roms/cpcplus/system.cpr,roms/kcc/kccos.rom,roms/kcc/kccbas.rom
 

@@ -17,17 +17,8 @@
  *  along with this program; if not, write to the Free Software
  *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
-#ifndef __VOC_HEADER_INCLUDED__
-#define __VOC_HEADER_INCLUDED__
-
-#include "sampload.h"
-
-BOOL	VOC_Validate(const char *);
-void	VOC_Open(SAMPLE_AUDIO_STREAM *);
-unsigned char VOC_GetDataByte(SAMPLE_AUDIO_STREAM *pAudioStream);
-
-
-
+#ifndef __CONFIG_HEADER_INCLUDED__
+#define __CONFIG_HEADER_INCLUDED__
 
 
 #endif

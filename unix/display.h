@@ -1,6 +1,6 @@
-/*
+/* 
  *  Arnold emulator (c) Copyright, Kevin Thacker 1995-2001
- *
+ *  
  *  This file is part of the Arnold emulator source code distribution.
  *
  *  This program is free software; you can redistribute it and/or modify
@@ -34,8 +34,6 @@ void sdl_UnlockGraphicsBuffer(void);
 void sdl_SwapGraphicsBuffers(void);
 BOOL sdl_ProcessSystemEvents(void);
 void sdl_Throttle(void);
-int sdl_RefreshRate(void);
-void sdl_SetFPS(int);
 extern int sdl_LockSpeed;
 void sdl_HandleMouse(SDL_MouseMotionEvent *event);
 #define QWERTY 0
@@ -43,4 +41,15 @@ void sdl_HandleMouse(SDL_MouseMotionEvent *event);
 #define AZERTY 2
 #define SPANISH 3
 void sdl_InitialiseKeyboardMapping(int layout);
+#else
+#include "../cpc/host.h"
+#include <X11/Xlib.h>
+#include <X11/Xutil.h>
+#include <X11/keysym.h>
+#include "../cpc/cpc.h"
+void XWindows_SetDisplayWindowed(int Width, int Height, int Depth);
+void XWindows_GetGraphicsBufferColourFormat(GRAPHICS_BUFFER_COLOUR_FORMAT *pFormat);
+int XWindows_CheckDisplay(void);
+void XWindows_GetGraphicsBufferInfo(GRAPHICS_BUFFER_INFO *pBufferInfo);
+void XWindows_SwapGraphicsBuffers(void);
 #endif

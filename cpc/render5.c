@@ -207,7 +207,7 @@ static void Render_TrueColourRGB_Setup(void)
 
 	pRender_SetColour = Render_TrueColourRGB_SetColour;
 	pRender_PutSync = Render_TrueColourRGB_PutSync;
-	pRender_PutBorder = Render_PutBorderNULL;
+	pRender_PutBorder = Render_TrueColourRGB_PutBorder;
 	pRender_PutDataWord = Render_TrueColourRGB_PutDataWord;
 	pRender_PutDataWordPLUS = Render_TrueColourRGB_PutDataWordPLUS;
 
@@ -368,7 +368,7 @@ static void	Render_Paletted_Setup(void)
 	pRender_SetColour = Render_Paletted_SetColour;
 
 	pRender_PutSync = Render_Paletted_PutSync;
-	pRender_PutBorder = Render_PutBorderNULL;
+	pRender_PutBorder = Render_Paletted_PutBorder;
 	pRender_PutDataWord = Render_Paletted_PutDataWord;
 	pRender_PutDataWordPLUS = Render_Paletted_PutDataWordPLUS;
 
@@ -900,7 +900,7 @@ void    Render_SetHorizontalPixelScroll(int PixelScroll)
 }
 
 
-//#ifdef GENERIC
+#ifdef GENERIC
 /* faster, but may not be accurate enough */
 void    Render_TrueColourRGB_PutDataWordPLUS(int HorizontalCount,unsigned long GraphicsData, int Line, unsigned long Mask, int *pPixels)
 {
@@ -956,7 +956,7 @@ void    Render_TrueColourRGB_PutDataWordPLUS(int HorizontalCount,unsigned long G
 
 	Render_UpdateRenderAddress;
 }
-/*#else
+#else
 void    Render_TrueColourRGB_PutDataWordPLUS(int HorizontalCount,unsigned long GraphicsData, int Line, unsigned long Mask, int *pPixels)
 {
 	int i;
@@ -973,6 +973,7 @@ void    Render_TrueColourRGB_PutDataWordPLUS(int HorizontalCount,unsigned long G
 
 	if ((Mask & 0x0ffff)==0x0ffff)
 	{
+		/* all screen pixels */
 		unsigned long PackedPixels;
 		int Pixel;
 		unsigned long ScreenPixel;
@@ -1228,7 +1229,7 @@ void    Render_TrueColourRGB_PutDataWordPLUS(int HorizontalCount,unsigned long G
 	Render_UpdateRenderAddress;
 }
 #endif
-*/
+
 
 
 /* faster, but may not be accurate enough */
@@ -1649,10 +1650,9 @@ BOOL Render_SetDisplayFullScreen(int Width, int Height, int Depth)
  
         int ScreenResX = Width;
         int ScreenResY = Height;
-        //int ScreenDepth = Depth;
-		int ScreenDepth = 32;
-        //Render_SetRenderingAccuracy(RENDERING_ACCURACY_HIGH);
-        Render_SetRenderingAccuracy(RENDERING_ACCURACY_LOW);
+        int ScreenDepth = Depth;
+
+        Render_SetRenderingAccuracy(RENDERING_ACCURACY_HIGH);
 
         if (Host_SetDisplay(DISPLAY_TYPE_FULLSCREEN,ScreenResX,ScreenResY,ScreenDepth))
         {
@@ -1710,7 +1710,7 @@ BOOL    Render_SetDisplayWindowed(void)
                 ScreenHeight = ScreenHeight<<1;
         }
         
-        if (Host_SetDisplay(DISPLAY_TYPE_WINDOWED,ScreenWidth, ScreenHeight,32))
+        if (Host_SetDisplay(DISPLAY_TYPE_WINDOWED,ScreenWidth, ScreenHeight,0))
         {
                 GRAPHICS_BUFFER_COLOUR_FORMAT   *pGraphicsBufferColourFormat = Host_GetGraphicsBufferColourFormat();
 

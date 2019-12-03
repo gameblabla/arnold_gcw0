@@ -1,6 +1,6 @@
-/*
+/* 
  *  Arnold emulator (c) Copyright, Kevin Thacker 1995-2001
- *
+ *  
  *  This file is part of the Arnold emulator source code distribution.
  *
  *  This program is free software; you can redistribute it and/or modify
@@ -19,7 +19,7 @@
  */
 #include "audioevent.h"
 #include "cpc.h"
-//#include "debugmain.h"
+//#include "debugmain.h"  
 #include "psg.h"
 
 #include "headers.h"
@@ -40,7 +40,7 @@ int AudioEvent_Mix8BitStereo(unsigned char *, unsigned long, unsigned long);
 int AudioEvent_Mix8BitMono(unsigned char *, unsigned long, unsigned long);
 int AudioEvent_Mix16BitStereo(unsigned char *, unsigned long, unsigned long);
 int AudioEvent_Mix16BitMono(unsigned char *, unsigned long, unsigned long);
-void    Audio_Init(int newFrequency, int newBitsPerSample, int newNoOfChannels, float FramesPerSec);
+void    Audio_Init(int newFrequency, int newBitsPerSample, int newNoOfChannels);
 
 unsigned char *Digiblaster_Buffer = NULL;
 unsigned char *pMixedSampleData = NULL;
@@ -158,22 +158,20 @@ void	Audio_Reset(void)
 		Digiblaster_Reset();
 }
 
-void    Audio_Init(int newFrequency, int newBitsPerSample, int newNoOfChannels, float FramesPerSec)
+void    Audio_Init(int newFrequency, int newBitsPerSample, int newNoOfChannels)
 {
         SampleRate = newFrequency;
         BitsPerSample = newBitsPerSample;
         NoOfChannels = newNoOfChannels;
 
-        if (FramesPerSec>0) {
-        	ScreenRefreshFrequency = FramesPerSec;
-	  }
-
+        ScreenRefreshFrequency = 50.08f;
+	
         /* no of samples per screen refresh */
         SamplesPerScreen = (float)SampleRate/(float)ScreenRefreshFrequency;
+	
 
 
-
-
+		
 
 
         /* no of bytes per sample element */
@@ -190,7 +188,7 @@ void    Audio_Init(int newFrequency, int newBitsPerSample, int newNoOfChannels, 
         pAudioBuffer2 = (unsigned char *)malloc(AudioBufSize);
 		Digiblaster_Buffer = (unsigned char *)malloc(AudioBufSize);
 		pMixedSampleData  = (unsigned char *)malloc(AudioBufSize);
-
+	
 		Digiblaster_Init();
 
         if (pAudioBuffer!=NULL)
@@ -226,13 +224,13 @@ void    Audio_Init(int newFrequency, int newBitsPerSample, int newNoOfChannels, 
 			float PSGEventsPerSample;
 
 			NopsPerSecond = 19968*ScreenRefreshFrequency;
-
+			
 			NopsPerSample = NopsPerSecond/SampleRate;
 
 			PSGEventsPerSample = (float)(PSG_CLOCK_FREQUENCY>>3)/(float)SampleRate;
 
 			fNopsPerSample.FixedPoint.L = (int)(NopsPerSample*65536.0f);
-			fPSGEventsPerSample.FixedPoint.L = (int)(PSGEventsPerSample*65536.0f);
+			fPSGEventsPerSample.FixedPoint.L = (int)(PSGEventsPerSample*65536.0f); 
 		}
 
 
@@ -250,14 +248,14 @@ void    Audio_Init(int newFrequency, int newBitsPerSample, int newNoOfChannels, 
                 for (i=0; i<32; i++)
                 {
 					VolumeLookup8Bit[i] = (i<<2);	/*^0x080; */
-
+               
 				}
 
                 for (i=0; i<32; i++)
                 {
-                        VolumeLookup16Bit[i] = (i<<(11-1));
+                        VolumeLookup16Bit[i] = (i<<(11-1)); 
                 }
-
+        
 				for (i=0; i<256; i++)
 				{
 					Digiblaster_Lookup8Bit[i] = i;
@@ -290,11 +288,11 @@ void    Audio_Enable(BOOL State)
 }
 
 
-void    AudioEvent_SetFormat(int SampleRate, int SampleBits, int SampleChannels, float FramesPerSec)
+void    AudioEvent_SetFormat(int SampleRate, int SampleBits, int SampleChannels)
 {
         AudioEvent_SampleBits = SampleBits;
 		AudioEvent_SampleChannels = SampleChannels;
-        Audio_Init(SampleRate, SampleBits, SampleChannels, FramesPerSec);
+        Audio_Init(SampleRate, SampleBits, SampleChannels);
 
 }
 
@@ -314,7 +312,7 @@ void    AudioEvent_RestartEventBuffer(int CPCNopCount)
 {
         pEventBufferPtr = pEventBuffer;
         NoOfEventsInBuffer = 0;
-        EventBufferNopCount = CPCNopCount;
+        EventBufferNopCount = CPCNopCount;      
 }
 
 /* add event to buffer as long as there is space, otherwise silently ignore it */
@@ -377,10 +375,10 @@ char *AudioEvent_UpdateCycle(char *pAudioPtr)
 	PSG_OUTPUT_VOLUME PSG_Output;
     signed char LeftVolume;
 	signed char RightVolume;
-
+	
 	/* update PSG and get volume outputs for channel A,B and C */
 	PSG_Output = PSG_UpdateChannels(&fPSGEventsPerSample);
-
+    
 	/* Mix Volume channels as on a real CPC */
 
 	LeftVolume = (signed char)((PSG_Output.VolA>>1) + (PSG_Output.VolB>>1));
@@ -398,7 +396,7 @@ char *AudioEvent_UpdateCycle(char *pAudioPtr)
 /*	pAudioPtr[2] = Digiblaster_Volume; */
 	pAudioPtr+=4;
 
-	return pAudioPtr;
+	return pAudioPtr;       
 }
 
 
@@ -437,7 +435,7 @@ void	AudioEvent_ConvertToOutputFormat_8BitStereo(char *pSrcBuffer, char *pDestBu
 
 			Data = pSource[0];
 
-			Data = (Data>>1) +
+			Data = (Data>>1) + 
 		}
 	}
 */
@@ -464,7 +462,7 @@ void	AudioEvent_ConvertToOutputFormat_8BitMono(char *pSrcBuffer, char *pDestBuff
 		pSrcAudioPtr++;
 /*		Digiblaster_Vol = Digiblaster_Lookup8Bit[pSrcAudioPtr[0]]>>1; */
 		pSrcAudioPtr+=2;
-
+		
 		/* mix it */
 		PSG_Volume = (PSG_LeftVolume + PSG_RightVolume)>>1;
 
@@ -485,7 +483,7 @@ void	AudioEvent_ConvertToOutputFormat_16BitStereo(char *pSrcBuffer, char *pDestB
 	{
 		unsigned char PSG_LeftVolume, PSG_RightVolume;
 		unsigned long Digiblaster_Vol;
-
+	
 		/* get left volume, get right volume */
 		PSG_LeftVolume = pSrcAudioPtr[0];
 		pSrcAudioPtr++;
@@ -493,7 +491,7 @@ void	AudioEvent_ConvertToOutputFormat_16BitStereo(char *pSrcBuffer, char *pDestB
 		pSrcAudioPtr++;
 		Digiblaster_Vol = Digiblaster_Lookup16Bit[pSrcAudioPtr[0]]>>1;
 		pSrcAudioPtr+=2;
-
+		
 		/* mix 8-bit stereo */
 		pDestAudioPtr[0] = VolumeLookup16Bit[PSG_LeftVolume];
 		pDestAudioPtr++;
@@ -522,7 +520,7 @@ void	AudioEvent_ConvertToOutputFormat_16BitMono(char *pSrcBuffer, char *pDestBuf
 		pSrcAudioPtr++;
 		Digiblaster_Vol = Digiblaster_Lookup16Bit[pSrcAudioPtr[0]]>>1;
 		pSrcAudioPtr+=2;
-
+		
 		/* mix it */
 		PSG_Volume = (PSG_LeftVolume + PSG_RightVolume)>>1;
 
@@ -545,14 +543,14 @@ void	AudioEvent_ConvertToOutputFormat(void)
 	if (Host_LockAudioBuffer(&pAudio1, &AudioBlock1Size, &pAudio2, &AudioBlock2Size, AudioBufferSize))
 	{
 		memcpy(pAudio1, pMixedSampleData, AudioBlock1Size);
-
+		
 		if (pAudio2!=NULL)
 		{
 			memcpy(pAudio2, pMixedSampleData+AudioBlock1Size, AudioBlock2Size);
 		}
 
 #if 0
-		pSrcAudioPtr1 =	pAudioBuffer2;
+		pSrcAudioPtr1 =	pAudioBuffer2;	
 		pSrcAudioPtr2 = pSrcAudioPtr1 + (Block1Count<<2);
 
 		switch (AudioEvent_SampleBits)
@@ -571,7 +569,7 @@ void	AudioEvent_ConvertToOutputFormat(void)
 				else
 				{
 					AudioEvent_ConvertToOutputFormat_8BitMono(pAudioBuffer2, pAudioBuffer, Block1Count);
-
+								
 					if (pAudio2!=NULL)
 					{
 						AudioEvent_ConvertToOutputFormat_8BitMono(pAudioBuffer2,pAudioBuffer,Block2Count);
@@ -594,7 +592,7 @@ void	AudioEvent_ConvertToOutputFormat(void)
 				else
 				{
 					AudioEvent_ConvertToOutputFormat_16BitMono(pAudioBuffer2, pAudioBuffer, Block1Count);
-
+								
 					if (pAudio2!=NULL)
 					{
 						AudioEvent_ConvertToOutputFormat_16BitMono(pAudioBuffer2,pAudioBuffer,Block2Count);
@@ -606,7 +604,7 @@ void	AudioEvent_ConvertToOutputFormat(void)
 #endif
 		/* if wave output is enabled, then dump sound data to a wav file */
 //		WavOutput_WriteBlock((char *)pAudio1, AudioBlock1Size);
-
+		
 		if (pAudio2!=NULL)
 		{
 //			WavOutput_WriteBlock((char *)pAudio2, AudioBlock2Size);
@@ -633,7 +631,7 @@ void	AudioEvent_ConvertToOutputFormat(void)
 		int Block1Count = AudioBlock1Size / (AudioEvent_SampleChannels* (AudioEvent_SampleBits>>3));
 		int Block2Count = AudioBlock2Size / (AudioEvent_SampleChannels* (AudioEvent_SampleBits>>3));
 
-		pSrcAudioPtr1 =	pAudioBuffer2;
+		pSrcAudioPtr1 =	pAudioBuffer2;	
 		pSrcAudioPtr2 = pSrcAudioPtr1 + (Block1Count<<2);
 
 		switch (AudioEvent_SampleBits)
@@ -652,7 +650,7 @@ void	AudioEvent_ConvertToOutputFormat(void)
 				else
 				{
 					AudioEvent_ConvertToOutputFormat_8BitMono(pAudioBuffer2, pAudioBuffer, Block1Count);
-
+								
 					if (pAudio2!=NULL)
 					{
 						AudioEvent_ConvertToOutputFormat_8BitMono(pAudioBuffer2,pAudioBuffer,Block2Count);
@@ -675,7 +673,7 @@ void	AudioEvent_ConvertToOutputFormat(void)
 				else
 				{
 					AudioEvent_ConvertToOutputFormat_16BitMono(pAudioBuffer2, pAudioBuffer, Block1Count);
-
+								
 					if (pAudio2!=NULL)
 					{
 						AudioEvent_ConvertToOutputFormat_16BitMono(pAudioBuffer2,pAudioBuffer,Block2Count);
@@ -687,7 +685,7 @@ void	AudioEvent_ConvertToOutputFormat(void)
 
 		/* if wave output is enabled, then dump sound data to a wav file */
 		WavOutput_WriteBlock(pAudio1, AudioBlock1Size);
-
+		
 		if (pAudio2!=NULL)
 		{
 			WavOutput_WriteBlock(pAudio2, AudioBlock2Size);
@@ -707,11 +705,11 @@ int     AudioEvent_TraverseAudioEventsAndBuildSampleData(int CPCNopCount, int No
         int i;
 /*        int EventBufferNopEnd; */
 
-
+        
         {
         AUDIO_EVENT *pCurrentEvent = (AUDIO_EVENT *)pEventBuffer;
 
-        char *pAudioPtr = (char *) pAudioBuffer2;
+        unsigned char *pAudioPtr = pAudioBuffer2;
 
         int EventCount = NoOfEventsInBuffer;
         int NopOffset;
@@ -727,20 +725,20 @@ int     AudioEvent_TraverseAudioEventsAndBuildSampleData(int CPCNopCount, int No
                 NopsCountedThisFrame = NopsPerFrameUpdate;
         }
 
-        NopCount.FixedPoint.L = AudioEvent_PreviousFraction;
+        NopCount.FixedPoint.L = AudioEvent_PreviousFraction;	
 
         /* nop scale will be 1 if running at exact speed.  */
 
 		/* NopsCountThisFrame = Number Of Nops that have passed between this and the last audio update */
 		/* NopsPerFrameUpdate = 19968 = Number Of Nops which should occur in frame for 1:1 sound output */
-
+		
         NopScale.FixedPoint.L = (NopsCountedThisFrame<<16)/NopsPerFrameUpdate;
-
+        
 		/* we want the increment to add to the NOP count so that at the end of NoOfSamplesInSampleBuffer it
 		gives the number of nops */
+		
 
-
-		NopsPerSampleScaled.FixedPoint.L = fNopsPerSample.FixedPoint.L;
+		NopsPerSampleScaled.FixedPoint.L = fNopsPerSample.FixedPoint.L;	
 
         if (EventCount<=0)
         {
@@ -793,8 +791,8 @@ int     AudioEvent_TraverseAudioEventsAndBuildSampleData(int CPCNopCount, int No
 										Digiblaster_Volume = pCurrentEvent->AudioEvent.Digiblaster_Event.Volume & 0x0ff;
 								}
 								break;
-#endif
-
+#endif					
+							
 								default:
 									break;
 							}
@@ -814,17 +812,17 @@ int     AudioEvent_TraverseAudioEventsAndBuildSampleData(int CPCNopCount, int No
 
 									/* get no of nops to this event */
 									NopOffset = pCurrentEvent->NopCount - EventBufferNopCount;
-
+    
 							}
 						}
-						while ((NopCountBefore<=(NopOffset<<16)) &&
+						while ((NopCountBefore<=(NopOffset<<16)) && 
 								(NopCountAfter>(NopOffset<<16)) && (NopOffset!=-1));
 					}
 				}
-
+			
 				pAudioPtr = (char *)AudioEvent_UpdateCycle(pAudioPtr);
-
-				NopCount.FixedPoint.L += NopsPerSampleScaled.FixedPoint.L;
+            
+				NopCount.FixedPoint.L += NopsPerSampleScaled.FixedPoint.L;    
 			}
 		}
 
@@ -854,7 +852,7 @@ int     AudioEvent_TraverseAudioEventsAndBuildSampleData(int CPCNopCount, int No
 /*					for (i=0; i<NoOfSamplesInSampleBuffer; i++)
 					{
 						unsigned char Digiblaster_DataByte;
-
+						
 						pMixedSampleData[(i<<1)] = pDigiblaster_Data;
 						pMixedSampleData[(i<<1)+1] = pDigiblaster_Data;
 					}
@@ -883,7 +881,7 @@ int     AudioEvent_TraverseAudioEventsAndBuildSampleData(int CPCNopCount, int No
 
 		/* if wave output is enabled, then dump sound data to a wav file */
 /*		WavOutput_WriteBlock(pMixedSampleData, SamplesToGenerate); */
-
+	
 
 		/* convert PSG vol/Digiblaster data to sample data */
 		AudioEvent_ConvertToOutputFormat();
@@ -975,9 +973,9 @@ INLINE void	Digiblaster_Update(unsigned char Digiblaster_Data)
 
 			/* add contribution from the previous value written  because now we know
 			how long it was active for.
-
+			
 			Active_Time = CurrentFraction - Digiblaster_PreviousFraction */
-
+			
 			/* Data_Contribution = Data * Active_Time */
 			Digiblaster_SoundData += (Digiblaster_PreviousData*(CurrentFraction - Digiblaster_PreviousFraction))>>16;
 
@@ -1022,7 +1020,7 @@ void	Audio_Digiblaster_Write(unsigned char Digiblaster_Data)
 		Digiblaster_Update(Digiblaster_Data);
 	}
 }
-
+					
 void	AudioEvent_ConvertToOutputFormat_8BitStereo(char *pSrcBuffer, char *pDestBuffer, int Count)
 {
 	int i;
@@ -1051,7 +1049,7 @@ void	AudioEvent_ConvertToOutputFormat_8BitStereo(char *pSrcBuffer, char *pDestBu
 			{
 				Vol = 255;
 			}
-	*/
+	*/	
 			pDestAudioPtr[0] = Vol;
 		}
 		pDestAudioPtr++;

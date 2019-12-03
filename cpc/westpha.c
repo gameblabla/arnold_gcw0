@@ -27,7 +27,7 @@ AN IDEA OF WHAT SHOULD HAPPEN! */
 /* NOP count before changing to next state */
 static int StateCount;
 /* we fill in the joystick line */
-extern int KeyboardData[20];
+extern unsigned char KeyboardData[16];
 
 static unsigned char WestPhaser_DataBuffer[80];
 

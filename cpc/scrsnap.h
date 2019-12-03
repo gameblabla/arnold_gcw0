@@ -1,5 +1,3 @@
-
-
 /* 
  *  Arnold emulator (c) Copyright, Kevin Thacker 1995-2001
  *  
@@ -19,16 +17,9 @@
  *  along with this program; if not, write to the Free Software
  *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
-#ifndef __MAKE_TRACK_HEADER_INCLUDED__
-#define __MAKE_TRACK_HEADER_INCLUDED__
+#ifndef __SCREEN_SNAPSHOT_HEADER_INCLUDED__
+#define __SCREEN_SNAPSHOT_HEADER_INCLUDED__
 
-
-/* data rate in microseconds - this is the nominal rate -
-max time for a bit of data and clock is 4 us. (4*8)=32! */
-#define DATA_RATE_US	32		
-
-void MakeTrack(char *);
-void	MakeTrack_AddSync(char **pTrackData);
-void	FDC_CRC_Init(void);
+void	Screen_SaveSnapshot(char *);
 
 #endif

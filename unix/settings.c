@@ -1,6 +1,6 @@
-/*
+/* 
  *  Arnold emulator (c) Copyright, Kevin Thacker 1995-2001
- *
+ *  
  *  This file is part of the Arnold emulator source code distribution.
  *
  *  This program is free software; you can redistribute it and/or modify
@@ -17,35 +17,36 @@
  *  along with this program; if not, write to the Free Software
  *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
-#ifdef HAVE_PULSE
+#include "../ifacegen/settings.h"
 
-#include "../cpc/host.h"
-//#include <stdio.h>
-//#include <unistd.h>
-//#include <stdlib.h>
-//#include <fcntl.h>
-//#include <sys/soundcard.h>
+BOOL	Settings_OpenSettings(int Mode)
+{
+	return TRUE;
+}
 
-#include <pulse/simple.h>
-#include <pulse/error.h>
-//#include <pulse/gccmacro.h>
+BOOL  Settings_IsKeyPresent(char *KeyName)
+{
+	return FALSE;
+}
 
+void	Settings_CloseSettings(void)
+{
+}
 
-BOOL	pulseaudio_open_audio();
+void Settings_StoreString(char *KeyName, char *String)
+{
+}
 
-void	pulseaudio_close_audio(void);
+void	Settings_StoreInt(char *KeyName, int Value)
+{
+}
 
-BOOL	pulseaudio_AudioPlaybackPossible(void);
+char *Settings_GetString(char *KeyName)
+{
+	return NULL;
+}
 
-SOUND_PLAYBACK_FORMAT *pulseaudio_GetSoundPlaybackFormat(void);
-
-BOOL	pulseaudio_LockAudioBuffer(unsigned char **pBlock1, unsigned long
-*pBlock1Size, unsigned char **pBlock2, unsigned long *pBlock2Size, int
-AudioBufferSize);
-
-void	pulseaudio_UnLockAudioBuffer(void);
-
-BOOL	pulseaudio_Throttle(void);
-
-#endif	/* HAVE_PULSE */
-
+int	Settings_GetInt(char *KeyName)
+{
+	return 0;
+}

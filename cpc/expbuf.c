@@ -18,7 +18,10 @@
  *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
 /* a simple expanding buffer used by snapshot write routine */
-#include "headers.h"
+#include <stdio.h>
+#include <stdlib.h>
+#include <memory.h>
+#include <string.h>
 #include "cpcdefs.h"
 #include "expbuf.h"
 

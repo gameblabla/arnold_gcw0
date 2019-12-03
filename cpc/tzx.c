@@ -34,8 +34,6 @@
 extern char DebugString[256];
 extern DEBUG_HANDLE TZX_Debug;
 #endif
-unsigned char *pGretBigSample = NULL;
-unsigned char *pPos;
 
 
 static char *TZX_TapeHeader = "ZXTape!\26";
@@ -60,7 +58,7 @@ static unsigned char *pTapeBlockPtr = NULL;
 
 static void	TapeImage_GetNextDataBlock(void);
 int		TapeImage_GetBlockLength(unsigned char *pBlock);
-//static void	TapeImage_HandleBlock(unsigned char *);
+static void	TapeImage_HandleBlock(unsigned char *);
 
 
 INLINE int	TapeImage_GetByte(unsigned char *pPtr)
@@ -116,6 +114,7 @@ static BOOL TapeImage_IsADataOrPauseBlock(unsigned char BlockIndex)
 }
 
 
+
 /* t-states remaining in this block */
 
 static unsigned long TapeImage_ExpandedByte[256];
@@ -147,12 +146,12 @@ void	TapeImage_Init(void)
 	}
 }
 
+
 /* set if we have reached end of tape */
 #define TAPE_IMAGE_REACHED_END	0x0001
 /* set if the tape motor is active and play is pressed */
 #define TAPE_IMAGE_MOTOR_ON		0x0002
 
-#if 0
 static unsigned char Cycle=0x00;
 static unsigned char BaseCycle = 0x00;
 
@@ -160,12 +159,11 @@ static unsigned char BaseCycle = 0x00;
 static unsigned long TapeImage_Global_TStatesRemaining = 0;
 static BOOL TapeImage_LowLevelActive;
 static BOOL TapeImage_HighLevelActive;
-#endif
+
 
 /* rewind back to start of tape */
 void	TapeImage_RewindToStart(void)
 {
-
 	/* it's not reached the end, because it is now at the start */
 	TapeImage_Flags &= ~TAPE_IMAGE_REACHED_END;
 
@@ -176,8 +174,6 @@ void	TapeImage_RewindToStart(void)
 		/* first block in tzx */
 		pTapeBlockPtr = pTapeImage+10;
 
-		pPos = pGretBigSample;
-#if 0
 		Cycle = 0x00;
 		BaseCycle = (unsigned char)Cycle;
 
@@ -185,7 +181,7 @@ void	TapeImage_RewindToStart(void)
 
 		TapeImage_LowLevelActive  = FALSE;
 		TapeImage_HighLevelActive = FALSE;
-#endif
+
 		/* get ID of first block */
 		BlockIndex = (unsigned char)TapeImage_GetByte(pTapeBlockPtr);
 	
@@ -195,7 +191,7 @@ void	TapeImage_RewindToStart(void)
 			TapeImage_GetNextDataBlock(); 
 		}
 
-//		TapeImage_HandleBlock(pTapeBlockPtr);
+		TapeImage_HandleBlock(pTapeBlockPtr);
 	}
 }
 
@@ -253,7 +249,6 @@ static unsigned long TapeImage_MillisecondsToTStates(unsigned long Milliseconds)
 	return ((SPECTRUM_CLOCK_HZ/1000)*Milliseconds);
 }
 
-#if 0
 enum
 {
 	TZX_STATE_BASIC_PULSE = 1,
@@ -382,7 +377,6 @@ static void TapeImage_SetHighLevelState(BOOL (*StateData)(void), unsigned char *
 
 	TapeImage_HighLevelActive = TRUE;
 }
-#endif
 
 /***************************************************/
 /** TZX LOOP BLOCK HANDLING **/
@@ -476,15 +470,6 @@ static BOOL	TZX_UpdateLoop(void)
 }
 
 /***************************************************/
-
-#if 0
-
-
-
-
-
-
-
 
 /* returns TRUE if low-level state has completed, FALSE otherwise */
 static BOOL TapeImage_DoLowLevelState(int TStatesPassed)
@@ -834,284 +819,431 @@ int PilotPulsesRemaining;
 */
 /* current stage */
 
-/* sample rate */
 
-
-#endif
-unsigned long CurrentLevel = 0;
-
-typedef struct
+/* returns TRUE if completed block, else FALSE */
+static BOOL	TapeImage_HandleBlock0x010(void)
 {
-	unsigned long emp;
-} SAMPLE_BUFFER;
-
-/* on Amstrad */
-/* 4 t-states = 1us */
-
-#define A_MICROSECOND (1e-06)
-#define SAMPLE_RATE (22050)
-
-unsigned long TStatesToSamples(SAMPLE_BUFFER *pBuffer, unsigned long TStates)
-{
-	unsigned long ScaledTStates = TapeImage_ScaleTStates(TStates);
-
-	/* scaled t states will be in 4 */
-	return TStates/64;
-}
-
-void	SampleBuffer_Fill(SAMPLE_BUFFER *pBuffer, unsigned long NumSamples)
-{
-	int i;
-
-	for (i=0; i<NumSamples; i++)
+	switch (TapeImage_HighLevelState)
 	{
-		pPos[0] = CurrentLevel;
-		pPos++;
-	}
-}
-
-void	SampleBuffer_ChangeLevel(SAMPLE_BUFFER *pBuffer)
-{
-	if (CurrentLevel==1)
-	{
-		CurrentLevel = 0;
-	}
-	else if (CurrentLevel == 0)
-	{
-		CurrentLevel = 1;
-	}
-}
-
-
-void	OutputPause(SAMPLE_BUFFER *pBuffer, unsigned long TimeInMilliseconds)
-{
-	if (TimeInMilliseconds!=0)
-	{	
-		unsigned long SpectrumTStates = TapeImage_MillisecondsToTStates(TimeInMilliseconds);
-		unsigned long NumSamples = TStatesToSamples(pBuffer,SpectrumTStates);
-
-		CurrentLevel  = 0;
-
-		SampleBuffer_Fill(pBuffer, NumSamples);
-	}
-}
-
-void	OutputPulse(SAMPLE_BUFFER *pBuffer, unsigned long PulseWidthInTStates)
-{
-	unsigned long NumSamples = TStatesToSamples(pBuffer,PulseWidthInTStates);
-
-	SampleBuffer_Fill(pBuffer, NumSamples);
-
-	SampleBuffer_ChangeLevel(pBuffer);
-}
-
-void	OutputWave(SAMPLE_BUFFER *pBuffer, unsigned long PulseWidthInTStates)
-{
-	OutputPulse(pBuffer, PulseWidthInTStates);
-	OutputPulse(pBuffer, PulseWidthInTStates);
-}
-
-void	OutputWaves(SAMPLE_BUFFER *pBuffer, unsigned long PulseWidthInTStates, unsigned long NumWaves)
-{
-	int i;
-
-	for (i=0; i<NumWaves; i++)
-	{
-		OutputWave(pBuffer, PulseWidthInTStates);
-	}
-}
-
-
-void	OutputPulses(SAMPLE_BUFFER *pBuffer, unsigned long PulseWidthInTStates, unsigned long NumPulses)
-{
-	int i;
-
-	for (i=0; i<NumPulses; i++)
-	{
-		OutputPulse(pBuffer, PulseWidthInTStates);
-	}
-}
-
-typedef struct
-{
-	unsigned long LengthOfOneBitPulseInTStates;
-	unsigned long LengthOfZeroBitPulseInTStates;
-	unsigned long Length;
-	unsigned char *pData;
-	unsigned long NumberOfBitsUsedInLastByte;
-} TZX_DATA_SIGNAL_DESCRIPTION;
-
-void	OutputData(SAMPLE_BUFFER *pBuffer, TZX_DATA_SIGNAL_DESCRIPTION *pDataDesc)
-{
-	unsigned long NumBitsRemaining;
-	unsigned char CurrentByte;
-	unsigned long NumBytesRemaining;
-	unsigned char *pData;
-
-	pData = pDataDesc->pData;
-	NumBytesRemaining = pDataDesc->Length;
-
-	while (NumBytesRemaining!=0)
-	{
-		if (NumBytesRemaining==1)
+		/* Pilot */
+		case 0:
 		{
-			NumBitsRemaining = pDataDesc->NumberOfBitsUsedInLastByte;
+			/* setup pilot tone */
+
+			/* pilot tone pulse width */
+			BasicTone.PulseWidthInTStates = TapeImage_ScaleTStates(2168);
+			/* pilot tone num cycles */
+			BasicTone.NumCycles = 3220;
+
+			/* set low-level state */
+			TapeImage_SetLowLevelState(TZX_STATE_BASIC_PULSE, &BasicTone);
+		
+			TapeImage_HighLevelState++;
 		}
-		else
+		break;
+
+		/* sync pulse 1 */
+		case 1:
 		{
-			NumBitsRemaining = 8;
+			/* setup sync pulse 1 tone */
+			BasicTone.PulseWidthInTStates = TapeImage_ScaleTStates(667);
+			/* 1 cycle */
+			BasicTone.NumCycles = 1;
+			
+			TapeImage_SetLowLevelState(TZX_STATE_BASIC_PULSE, &BasicTone);
+		
+			TapeImage_HighLevelState++;
 		}
+		break;
 
-		NumBytesRemaining--;
-
-		CurrentByte = pData[0];
-		pData++;
-
-		do
+		/* sync pulse 2*/
+		case 2:
 		{
-			/* get current bit */
-			if ((CurrentByte & 0x080)!=0)
+			/* setup sync pulse 2 tone */
+			BasicTone.PulseWidthInTStates = TapeImage_ScaleTStates(735);
+			BasicTone.NumCycles = 1;
+
+			TapeImage_SetLowLevelState(TZX_STATE_BASIC_PULSE, &BasicTone);
+		
+			TapeImage_HighLevelState++;
+		
+			/**** SETUP FOR DATA ****/
+
+			/* length of one bit */
+			TapeImage_LengthOfOneBitPulseInTStates = TapeImage_ScaleTStates(1710);	
+			
+			/* length of zero bit */
+			TapeImage_LengthOfZeroBitPulseInTStates = TapeImage_ScaleTStates(855);	
+			
+			/* get length of data */
+			TapeImage_BytesRemaining = 
+				TapeImage_GetWord(TapeImage_HighLevelStateBlockPtr + 0x02);
+			
+			/* get number of bits used in last byte */
+			TapeImage_NumBitsUsedInLastByte = 8;
+			
+			/* set data ptr */
+			TapeImage_pData = TapeImage_HighLevelStateBlockPtr + 0x04;
+			
+			TapeImage_InitForHandleData();
+
+		}
+		break;
+
+		
+		/* data */
+		case 3:
+		{
+			TapeImage_HandleData();
+		}
+		break;
+
+
+		case 4:
+		{
+			unsigned long Pause;
+
+			Pause = TapeImage_GetWord(TapeImage_HighLevelStateBlockPtr + 0x00);
+
+			if (Pause!=0)
 			{
-				/* 1 bit */
-				OutputWave(pBuffer, pDataDesc->LengthOfOneBitPulseInTStates);
+				BasicPause.PauseInTStates = TapeImage_MillisecondsToTStates(Pause);
+			
+				TapeImage_SetLowLevelState(TZX_STATE_BASIC_PAUSE, &BasicPause);
+			
+				TapeImage_HighLevelState++;
 			}
 			else
 			{
-				/* 0 bit */
-				OutputWave(pBuffer, pDataDesc->LengthOfZeroBitPulseInTStates);
+				return TRUE;
 			}
-			
-			CurrentByte = CurrentByte<<1;
-			
-			NumBitsRemaining--;
+
 		}
-		while (NumBitsRemaining!=0);
+		break;
+
+		/* completed block */
+		case 5:
+		{
+			return TRUE;
+
+		}
 	}
 
-}
-
-void TapeImage_HandleBlock0x010(SAMPLE_BUFFER *pBuffer, char *pBlockDataPtr)
-{
-	TZX_DATA_SIGNAL_DESCRIPTION DataDescription;
-
-	/* setup pilot tone */
-	OutputWaves(pBuffer, 2168, 3220);
-	
-	/* sync pulse 1 */
-	OutputPulse(pBuffer, 667);
-
-	/* sync pulse 2 */
-	OutputPulse(pBuffer, 735);
-
-	/* data */
-	DataDescription.LengthOfOneBitPulseInTStates = 1710;
-	DataDescription.LengthOfZeroBitPulseInTStates = 855;
-	DataDescription.pData = pBlockDataPtr + 0x04;
-	DataDescription.Length = TapeImage_GetWord(pBlockDataPtr+0x02);
-	DataDescription.NumberOfBitsUsedInLastByte = 8;
-	
-	OutputData(pBuffer, &DataDescription);
-
-	/* pause after block */
-	OutputPause(pBuffer, TapeImage_GetWord(pBlockDataPtr + 0x00));
+	/* not handled yet! */
+	return FALSE;
 }
 
 
-void TapeImage_HandleBlock0x011(SAMPLE_BUFFER *pBuffer, char *pBlockDataPtr)
+
+
+
+/* returns TRUE if completed block, else FALSE */
+static BOOL TapeImage_HandleBlock0x011(void)
 {
-	TZX_DATA_SIGNAL_DESCRIPTION DataDescription;
+	switch (TapeImage_HighLevelState)
+	{
+		/* Pilot */
+		case 0:
+		{
+			/* setup pilot tone */
 
-	/* setup pilot tone */
-	OutputWaves(pBuffer, TapeImage_GetWord(pBlockDataPtr+0), TapeImage_GetWord(pBlockDataPtr+0x0a));
+			/* pilot tone pulse width */
+			BasicTone.PulseWidthInTStates = 
+				TapeImage_ScaleTStates(TapeImage_GetWord(TapeImage_HighLevelStateBlockPtr+0));
+			/* pilot tone num cycles */
+			BasicTone.NumCycles = 
+				TapeImage_GetWord(TapeImage_HighLevelStateBlockPtr+0x0a);
+			
+			/* set low-level state */
+			TapeImage_SetLowLevelState(TZX_STATE_BASIC_PULSE, &BasicTone);
+		
+			TapeImage_HighLevelState++;
+		}
+		break;
 
-	/* sync pulse 1 */
-	OutputPulse(pBuffer, TapeImage_GetWord(pBlockDataPtr+2));
+		/* sync pulse 1 */
+		case 1:
+		{
+			/* setup sync pulse 1 tone */
+			BasicTone.PulseWidthInTStates = 
+				TapeImage_ScaleTStates(TapeImage_GetWord(TapeImage_HighLevelStateBlockPtr+2));
+			/* 1 cycle */
+			BasicTone.NumCycles = 1;
+			
+			TapeImage_SetLowLevelState(TZX_STATE_BASIC_PULSE, &BasicTone);
+		
+			TapeImage_HighLevelState++;
+		}
+		break;
 
-	/* sync pulse 2 */
-	OutputPulse(pBuffer, TapeImage_GetWord(pBlockDataPtr+4));
+		/* sync pulse 2*/
+		case 2:
+		{
+			/* setup sync pulse 2 tone */
+			BasicTone.PulseWidthInTStates = 
+				TapeImage_ScaleTStates(TapeImage_GetWord(TapeImage_HighLevelStateBlockPtr + 4));
+			BasicTone.NumCycles = 1;
 
-	/* data */
-	DataDescription.LengthOfOneBitPulseInTStates = TapeImage_GetWord(pBlockDataPtr + 0x08);
-	DataDescription.LengthOfZeroBitPulseInTStates = TapeImage_GetWord(pBlockDataPtr + 0x06);
-	DataDescription.pData = pBlockDataPtr + 0x012;
-	DataDescription.Length = TapeImage_GetValue(pBlockDataPtr + 0x0f, 3);
-	DataDescription.NumberOfBitsUsedInLastByte = TapeImage_GetByte(pBlockDataPtr + 0x0c);
+			TapeImage_SetLowLevelState(TZX_STATE_BASIC_PULSE, &BasicTone);
+		
+			TapeImage_HighLevelState++;
+		
+			/**** SETUP FOR DATA ****/
 
-	OutputData(pBuffer, &DataDescription);
+			/* length of one bit */
+			TapeImage_LengthOfOneBitPulseInTStates = 
+				TapeImage_ScaleTStates(TapeImage_GetWord(TapeImage_HighLevelStateBlockPtr + 0x08));
 
-	/* pause after block */
-	OutputPause(pBuffer, TapeImage_GetWord(pBlockDataPtr + 0x0d));
+			/* length of zero bit */
+			TapeImage_LengthOfZeroBitPulseInTStates = 
+				TapeImage_ScaleTStates(TapeImage_GetWord(TapeImage_HighLevelStateBlockPtr + 0x06));
+			
+			/* get length of data */
+			TapeImage_BytesRemaining = 
+				TapeImage_GetValue(TapeImage_HighLevelStateBlockPtr + 0x0f, 3);
+			
+			/* get number of bits used in last byte */
+			TapeImage_NumBitsUsedInLastByte = 
+				TapeImage_GetByte(TapeImage_HighLevelStateBlockPtr + 0x0c);
+			
+			/* set data ptr */
+			TapeImage_pData = TapeImage_HighLevelStateBlockPtr + 0x012;
+			
+			TapeImage_InitForHandleData();
+
+		}
+		break;
+
+		
+		/* data */
+		case 3:
+		{
+			TapeImage_HandleData();
+		}
+		break;
+
+		/* pause */
+		case 4:
+		{
+			unsigned long Pause;
+
+			Pause = TapeImage_GetWord(TapeImage_HighLevelStateBlockPtr + 0x0d);
+
+			if (Pause!=0)
+			{
+				BasicPause.PauseInTStates = TapeImage_MillisecondsToTStates(Pause);
+			
+				TapeImage_SetLowLevelState(TZX_STATE_BASIC_PAUSE, &BasicPause);
+			
+				TapeImage_HighLevelState++;
+			}
+			else
+			{
+				return TRUE;
+			}
+
+		}
+		break;
+
+		/* completed block */
+		case 5:
+		{
+			return TRUE;
+		}
+		break;
+	}
+
+	return FALSE;
 }
 
 /* Handle Block 0x012 - Pure Tone */
-void TapeImage_HandleBlock0x012(SAMPLE_BUFFER *pBuffer, char *pBlockDataPtr)
+static BOOL	TapeImage_HandleBlock0x012(void)
 {
-	/* setup pilot tone */
-	OutputPulses(pBuffer, TapeImage_GetWord(pBlockDataPtr+0), TapeImage_GetWord(pBlockDataPtr+2));
+	switch (TapeImage_HighLevelState)
+	{
+		case 0:
+		{
+			/* set pulse width */
+			BasicTone.PulseWidthInTStates = 
+				TapeImage_ScaleTStates(TapeImage_GetWord(TapeImage_HighLevelStateBlockPtr+0));
+
+			/* set num cycles */
+			BasicTone.NumCycles = 
+				TapeImage_GetWord(TapeImage_HighLevelStateBlockPtr+2);
+
+			/* set low-level state */
+			TapeImage_SetLowLevelState(TZX_STATE_BASIC_PULSE, &BasicTone);
+
+			TapeImage_HighLevelState++;
+		}
+		break;
+
+		case 1:
+		{
+			return TRUE;
+		}
+	}
+
+	return FALSE;
 }
 
 /* Handle Block 0x013 - Sequence of Pulses of different lengths */
-void TapeImage_HandleBlock0x013(SAMPLE_BUFFER *pBuffer, char *pBlockDataPtr)
+static BOOL	TapeImage_HandleBlock0x013(void)
 {
 	unsigned long NumPulses;
-	int i;
 
 	/* get number of pulses */
-	NumPulses = TapeImage_GetByte(pBlockDataPtr);
+	NumPulses = TapeImage_GetByte(TapeImage_HighLevelStateBlockPtr);
 
-	for (i=0; i<NumPulses; i++)
+	if (TapeImage_HighLevelState==NumPulses)
 	{
-		OutputPulse(pBuffer, TapeImage_GetWord(pBlockDataPtr+(i<<1)+1));
+		return TRUE;
 	}
-}
 
+	/* set pulse width */
+	BasicTone.PulseWidthInTStates =  
+		TapeImage_ScaleTStates(
+		TapeImage_GetWord(TapeImage_HighLevelStateBlockPtr+(TapeImage_HighLevelState<<1)+1));
+
+	/* set num cycles */
+	BasicTone.NumCycles = 1;
+
+	/* set low-level state */
+	TapeImage_SetLowLevelState(TZX_STATE_BASIC_PULSE, &BasicTone);
+
+	TapeImage_HighLevelState++;
+
+	return FALSE;
+}
 
 /* Handle Block 0x014 - Pure Data*/
-void TapeImage_HandleBlock0x014(SAMPLE_BUFFER *pBuffer, char *pBlockDataPtr)
+static BOOL	TapeImage_HandleBlock0x014(void)
 {
-	TZX_DATA_SIGNAL_DESCRIPTION DataDescription;
-	/* data */
-	DataDescription.LengthOfOneBitPulseInTStates = TapeImage_GetWord(pBlockDataPtr + 0x02);
-	DataDescription.LengthOfZeroBitPulseInTStates = TapeImage_GetWord(pBlockDataPtr + 0x00);
-	DataDescription.pData = pBlockDataPtr + 0x0a;
-	DataDescription.Length = TapeImage_GetValue(pBlockDataPtr + 0x07, 3);
-	DataDescription.NumberOfBitsUsedInLastByte = TapeImage_GetByte(pBlockDataPtr + 0x04);
+	switch (TapeImage_HighLevelState)
+	{
 
-	OutputData(pBuffer, &DataDescription);
+		case 0:
+		{
+		
+			/**** SETUP FOR DATA ****/
 
-	/* pause after block */
-	OutputPause(pBuffer, TapeImage_GetWord(pBlockDataPtr + 0x05));
+			/* length of one bit */
+			TapeImage_LengthOfOneBitPulseInTStates = 
+				TapeImage_ScaleTStates(TapeImage_GetWord(TapeImage_HighLevelStateBlockPtr + 0x02));
+
+			/* length of zero bit */
+			TapeImage_LengthOfZeroBitPulseInTStates = 
+				TapeImage_ScaleTStates(TapeImage_GetWord(TapeImage_HighLevelStateBlockPtr + 0x00));
+			
+			/* get length of data */
+			TapeImage_BytesRemaining = 
+				TapeImage_GetValue(TapeImage_HighLevelStateBlockPtr + 0x07, 3);
+			
+			/* get number of bits used in last byte */
+			TapeImage_NumBitsUsedInLastByte = 
+				TapeImage_GetByte(TapeImage_HighLevelStateBlockPtr + 0x04);
+			
+			/* set data ptr */
+			TapeImage_pData = TapeImage_HighLevelStateBlockPtr + 0x0a;
+			
+			TapeImage_InitForHandleData();
+
+			TapeImage_HandleData();
+
+			TapeImage_HighLevelState++;
+		}
+		break;
+
+		case 1:
+		{
+			TapeImage_HandleData();
+		}
+		break;
+
+		case 2:
+		{
+			unsigned long Pause;
+
+			Pause = TapeImage_GetWord(TapeImage_HighLevelStateBlockPtr + 0x05);
+
+			if (Pause!=0)
+			{
+				BasicPause.PauseInTStates = TapeImage_MillisecondsToTStates(Pause);
+			
+				TapeImage_SetLowLevelState(TZX_STATE_BASIC_PAUSE, &BasicPause);
+			
+				TapeImage_HighLevelState++;
+			}
+			else
+			{
+				return TRUE;
+			}
+
+		}
+		break;
+
+		case 3:
+		{
+			return TRUE;
+
+		}
+	}
+
+	return FALSE;
 }
 
+/* returns TRUE if completed block, else FALSE */
+static BOOL TapeImage_HandleBlock0x015(void)
+{
+	switch (TapeImage_HighLevelState)
+	{
+	}
+	return FALSE;
+}
 
 
 /* pause */
-void TapeImage_HandleBlock0x020(SAMPLE_BUFFER *pBuffer, char *pBlockDataPtr)
+static BOOL TapeImage_HandleBlock0x020(void)
 {
-	/* pause */
-	OutputPause(pBuffer, TapeImage_GetWord(pBlockDataPtr + 0x00));
+	switch (TapeImage_HighLevelState)
+	{
+		case 0:
+		{
+			unsigned long Pause;
+
+			Pause = TapeImage_GetWord(TapeImage_HighLevelStateBlockPtr + 0);
+
+			if (Pause!=0)
+			{
+				/* convert pause in milliseconds to t-states */
+				BasicPause.PauseInTStates = TapeImage_MillisecondsToTStates(Pause);
+			
+				TapeImage_SetLowLevelState(TZX_STATE_BASIC_PAUSE, &BasicPause);
+			
+				TapeImage_HighLevelState++;
+			}
+			else
+			{
+				return TRUE;
+			}
+		}
+		break;
+
+		case 1:
+		{
+			return TRUE;
+		}
+	}
+
+	return FALSE;
 }
 
 		
-
-/* returns TRUE if completed block, else FALSE */
-void TapeImage_HandleBlock0x015(void)
-{
-}
-
-unsigned long PosUpd = 0;
 
 
 /* update tape position based on tstates passed and return a bit */
 int TapeImage_GetBit(int TStatesPassed)
 {
-	PosUpd += (TStatesPassed>>2);
-
-	pPos+=PosUpd>>4;
-	PosUpd&=0x0f;
-	return pPos[0];
-
-#if 0
 	Cycle = 0x01;
 
 	if (pTapeImage!=NULL)
@@ -1132,9 +1264,6 @@ int TapeImage_GetBit(int TStatesPassed)
 
 	/* send new bit of data */
 	return Cycle;
-#endif
-
-	return 1;
 }
 
 
@@ -1179,7 +1308,7 @@ static char	*TapeImage_ArchiveInfo_GetTextID(int Byte)
 		}
 	}
 }
-#if 0
+
 /******************/
 /* Handle a block */
 static void TapeImage_HandleBlock(unsigned char *pBlock)
@@ -1242,100 +1371,6 @@ static void TapeImage_HandleBlock(unsigned char *pBlock)
 		case 0x020:
 		{
 			TapeImage_SetHighLevelState(TapeImage_HandleBlock0x020, pBlockPtr);
-		}
-		break;
-
-		/* CONTROL BLOCKS */
-
-		/* Loop Start */
-		case 0x024:
-		{
-			int RepetitionCount;
-			
-			RepetitionCount = TapeImage_GetWord(pBlockPtr);
-			pBlockPtr+=2;
-
-			TZX_PushLoop(pBlockPtr, RepetitionCount);
-		}
-		break;
-
-		/* Loop End */
-		case 0x025:
-		{
-			if (TZX_UpdateLoop())
-			{
-				/* set new block ptr */
-				pBlockPtr = TZX_DoLoop();
-			}
-		}
-		break;
-
-
-
-	}
-}
-#endif
-
-static void TapeImage_HandleBlock(SAMPLE_BUFFER *pBuffer, unsigned char *pBlock)
-{
-	unsigned char *pBlockPtr = pBlock;
-	int	BlockIndex;
-
-	/* get block ID */
-	BlockIndex = TapeImage_GetByte(pBlockPtr);
-	
-	pBlockPtr++;
-
-	switch (BlockIndex)
-	{
-		/* PLAY BLOCKS */
-		
-		/* standard speed data block */
-		case 0x010:
-		{
-			TapeImage_HandleBlock0x010(pBuffer, pBlockPtr);
-		}
-		break;
-
-		/* Turbo loading data block */
-		case 0x011:
-		{
-			TapeImage_HandleBlock0x011(pBuffer, pBlockPtr);
-		}
-		break;
-
-		/* Pure Tone */
-		case 0x012:
-		{
-			TapeImage_HandleBlock0x012(pBuffer, pBlockPtr);
-		}
-		break;
-
-		/* Sequence of pulses of different lengths */
-		case 0x013:
-		{
-			TapeImage_HandleBlock0x013(pBuffer, pBlockPtr);
-		}
-		break;
-
-		/* Pure Data */
-		case 0x014:
-		{
-			TapeImage_HandleBlock0x014(pBuffer, pBlockPtr);
-		}
-		break;
-		
-		/* direct recording */
-		case 0x015:
-		{
-//			TapeImage_HandleBlock0x015(pBuffer, pBlockPtr);
-		}
-		break;
-
-		/* pause/stop the tape */
-		case 0x020:
-		{
-			TapeImage_HandleBlock0x020(pBuffer, pBlockPtr);
 		}
 		break;
 
@@ -1676,6 +1711,121 @@ static BOOL		TapeImage_BlockIsValid(unsigned char *pBlockPtr, unsigned char *pTa
 }
 
 
+
+
+/* validate a tape image */
+static BOOL	TapeImage_Validate(char *Filename)
+{
+	unsigned char *pTapeImage;
+	unsigned long TapeImageSize;
+	BOOL Validity = FALSE;
+
+	/* load tape image file */
+	Host_LoadFile(Filename, &pTapeImage, &TapeImageSize);
+
+	if (pTapeImage!=NULL)
+	{
+		if (memcmp(pTapeImage,TZX_TapeHeader,8))
+		{
+			/* main header is valid */
+			unsigned char *pBlockPtr;		
+			
+			/* calc end */
+			pTapeImageEnd = pTapeImage + TapeImageSize;
+			
+
+			/* 1st block */
+			pBlockPtr = pTapeImage + 10;
+
+			/* if block has no data, then report an error */
+			if (pBlockPtr==pTapeImageEnd)
+				return FALSE;
+
+			do
+			{
+				if (!(TapeImage_BlockIsValid(pBlockPtr,pTapeImageEnd,TapeImageSize)))
+				{
+					/* block appears to be in-valid */
+					break;
+				}
+				else
+				{
+					/* go to next block */
+					pBlockPtr += TapeImage_GetBlockLength(pBlockPtr);
+				}		
+			}
+			while (pBlockPtr<pTapeImageEnd);
+
+			/* if block ptr is not near end of tape, therefore
+				this block must be invalid - it's size is too big
+				and extends over the end of the tape image - attempting
+				to read this tape image could cause problems */
+
+			if (pBlockPtr>=pTapeImageEnd)
+			{
+				Validity = TRUE;
+			}
+		}
+
+		free(pTapeImage);
+	}
+
+	return Validity;
+}
+
+static void	TapeImage_GetNextDataBlock(void)
+{
+	unsigned char BlockIndex;
+
+	do
+	{
+		
+		TapeImage_NextBlock();
+
+		/* get block ID */
+		BlockIndex = (unsigned char)TapeImage_GetByte(pTapeBlockPtr);
+	
+	}
+	while ((!TapeImage_IsADataOrPauseBlock(BlockIndex)) && ((TapeImage_Flags & TAPE_IMAGE_REACHED_END)==0));
+}
+
+/* insert a tape image */
+BOOL	TapeImage_Insert(char *Filename)
+{
+	
+	/* attempt to load this tape image */
+	if (TapeImage_Validate(Filename))
+	{
+		/* remove an existing tape image that was loaded */
+		TapeImage_Remove();
+		
+		/* load tape image file */
+		Host_LoadFile(Filename, &pTapeImage, &TapeImageSize);
+
+		/* calc end */
+		pTapeImageEnd = pTapeImage + TapeImageSize;
+
+		TapeImage_RewindToStart();
+
+		CPC_SetCassetteType(CASSETTE_TYPE_TAPE_IMAGE);
+
+		return TRUE;
+	}
+
+	/* not valid, keep with current tape image */
+	return FALSE;
+}
+
+
+void	TapeImage_Remove(void)
+{
+	/* is tape image inserted? */
+	if (pTapeImage!=NULL)
+	{
+		free(pTapeImage);
+		pTapeImage = NULL;
+	}
+}
 
 static HOST_FILE_HANDLE TZX_Write_Handle;
 

@@ -1,6 +1,6 @@
-/*
+/* 
  *  Arnold emulator (c) Copyright, Kevin Thacker 1995-2001
- *
+ *  
  *  This file is part of the Arnold emulator source code distribution.
  *
  *  This program is free software; you can redistribute it and/or modify
@@ -37,7 +37,7 @@ BOOL bWin = TRUE;
 
 /* the following are for timing the emulation */
 #define FRAME_TIME_IN_MS	(1000/50)
-
+	
 #define NUM_FRAMES_TO_TIME	10
 static unsigned long FrameTimesInMs[NUM_FRAMES_TO_TIME];
 static unsigned long FrameIndexForFrameTimes = 0;
@@ -76,7 +76,7 @@ void	CPC_DoFrameFunc(void)
 	if (CurrentFrameIndex==FrameSkip+1)
 	{
 		CurrentFrameIndex = 0;
-
+		
 		/* is rendering possible? */
 		if (Render_IsRendererActive())
 		{
@@ -85,7 +85,7 @@ void	CPC_DoFrameFunc(void)
 		}
 	}
 
-	/* call speed throttle function - use this to
+	/* call speed throttle function - use this to 
 	throttle speed at 100% */
 	Host_Throttle();
 
@@ -120,7 +120,7 @@ void	CPC_DoFrameFunc(void)
 	}
 
 #ifdef SHOW_TIME
-	/* works out the speed of the emulation based on the previous 10
+	/* works out the speed of the emulation based on the previous 10 
 	frames. This method stores a frame time in ms for each frame in
 	a table, when 10 frame times have been recorded, it works out
 	the average of those times and updates the percentage speed. */
@@ -134,10 +134,10 @@ void	CPC_DoFrameFunc(void)
 
 		/* work out ms passed based on previous ms value */
 		MsPassed = CurrentTimeInMs - Arnold_PreviousTimeInMs;
-
+		
 		/* store this time */
 		Arnold_PreviousTimeInMs = CurrentTimeInMs;
-
+		
 		if (!first)
 		{
 			/* store this frame time */
@@ -203,7 +203,7 @@ BOOL	CPC_IsAudioActive(void)
 	return AudioActiveFlag;
 }
 
-void	CPC_SetAudioActive(BOOL State,float FramesPerSec)
+void	CPC_SetAudioActive(BOOL State)
 {
 	if ((AudioActiveFlag==FALSE) && (State==TRUE))
 	{
@@ -221,8 +221,8 @@ void	CPC_SetAudioActive(BOOL State,float FramesPerSec)
 			if (pSoundPlaybackFormat!=NULL)
 			{
 				/* audio was previously disabled, but we want it to be enabled */
-				AudioEvent_SetFormat(pSoundPlaybackFormat->Frequency, pSoundPlaybackFormat->BitsPerSample, pSoundPlaybackFormat->NumberOfChannels, FramesPerSec);
-
+				AudioEvent_SetFormat(pSoundPlaybackFormat->Frequency, pSoundPlaybackFormat->BitsPerSample, pSoundPlaybackFormat->NumberOfChannels);
+	
 				/* playing audio */
 				AudioActiveFlag = TRUE;
 			}
@@ -266,25 +266,9 @@ void	CPCEmulation_InitialiseDefaultSetup(void)
 /*   CPC_SetMonitorBrightness(MONITOR_BRIGHTNESS_MAX); */
 }
 
-/* To introduce Warp speed, we let each Z80 instruction last for fewer Nops:
-   With WarpFactor 1, an emulated Nop lasts 1 original Nop (CPC runs with original speed).
-   With WarpFactor 2, an emulated Nop lasts only 0.5 original Nops (CPC runs 2x as fast).
-   With WarpFactor 3, an emulated Nop lasts only 0.33 original Nops (CPC runs 3x as fast)
-   etc.. */
-static int NopCountAcc = 0; /* The accumulated Nop-count */
-static int WarpFactor = 1;  /* The speedup factor */
-
 void	CPC_ResetTiming(void)
 {
 	NopCountToDate = NOPS_PER_MONITOR_SCREEN;
-	NopCountAcc = 0;
-}
-
-#include <stdio.h>
-
-void CPC_SetWarpFactor(int NewWarpFactor)
-{
-	WarpFactor=NewWarpFactor;
 }
 
 
@@ -300,7 +284,7 @@ void	CPC_UpdateAudio(void)
 	{
 		/* update sound buffer with events in audio events buffer */
 		AudioEvent_TraverseAudioEventsAndBuildSampleData();
-
+	
 		/* convert PSG vol/Digiblaster data to sample data */
 		AudioEvent_ConvertToOutputFormat();
 	}
@@ -355,25 +339,17 @@ void	CPCEmulation_Run(void)
 
 		/* execute the instruction */
 #ifdef CPC_NODEBUGGER
-		NopCount = Z80_ExecuteInstruction();
+		NopCount = Z80_ExecuteInstruction(); 
 #else
-		//NopCount = Debugger_Execute();
-		NopCount = Z80_ExecuteInstruction();
+		NopCount = Debugger_Execute(); 
 #endif
-		/* Accumulate the Nop counts */
-		NopCountAcc += NopCount;
-		/* See if we accumulated enough */
-		NopCount = 0;
-		while (NopCountAcc>=WarpFactor)
-		{ NopCount++;
-			NopCountAcc-=WarpFactor; }
 		/* update CPC nop count - used for other hardware */
 		CPC_UpdateNopCount(NopCount);
 
 		LocalNopCountToDate = NopCountToDate - NopCount;
 
 		/* nop counter is used to define when we render the whole display */
-		if (LocalNopCountToDate<=0)
+		if (LocalNopCountToDate<=0)		
 		{
 			int NopsToFrameEnd;
 
@@ -381,8 +357,8 @@ void	CPCEmulation_Run(void)
 
 			/* update CRTC for NopCount cycles */
 			if (NopsToFrameEnd!=0)
-				CRTC_DoCycles(NopsToFrameEnd);
-
+				CRTC_DoCycles(NopsToFrameEnd);	
+		
 			/* execute functions when a frame has been completed */
 			/* Frame Skip Control code */
 
@@ -392,7 +368,7 @@ void	CPCEmulation_Run(void)
 			if(bWin) if (CurrentFrameIndex==FrameSkip+1)
 			{
 				CurrentFrameIndex = 0;
-
+				
 				/* is rendering possible? */
 				if (Render_IsRendererActive())
 				{
@@ -401,13 +377,13 @@ void	CPCEmulation_Run(void)
 				}
 			}
 
-			/* call speed throttle function - use this to
+			/* call speed throttle function - use this to 
 			throttle speed at 100% */
 			Host_Throttle();
 
          if (bWin)
          {
-			 doBreak = Host_ProcessSystemEvents();
+			 doBreak = Host_ProcessSystemEvents(); 
 
 
 			/* dont render */
@@ -431,7 +407,7 @@ void	CPCEmulation_Run(void)
 //			 doBreak = ConsoleBreak;
 		 }
 	#ifdef SHOW_TIME
-			/* works out the speed of the emulation based on the previous 10
+			/* works out the speed of the emulation based on the previous 10 
 			frames. This method stores a frame time in ms for each frame in
 			a table, when 10 frame times have been recorded, it works out
 			the average of those times and updates the percentage speed. */
@@ -445,10 +421,10 @@ void	CPCEmulation_Run(void)
 
 				/* work out ms passed based on previous ms value */
 				MsPassed = CurrentTimeInMs - Arnold_PreviousTimeInMs;
-
+				
 				/* store this time */
 				Arnold_PreviousTimeInMs = CurrentTimeInMs;
-
+				
 				if (!first)
 				{
 					/* store this frame time */
@@ -477,10 +453,10 @@ void	CPCEmulation_Run(void)
 			}
 	#endif
 /*			CPC_DoFrameFunc(); */
-
+		
 			if(bWin) if (LocalNopCountToDate!=0)
 				CRTC_DoCycles(-LocalNopCountToDate);
-
+		
 			/* a whole screen has been timed */
 			LocalNopCountToDate += NOPS_PER_MONITOR_SCREEN;
 
@@ -500,13 +476,13 @@ void	CPCEmulation_Finish(void)
 {
  AudioActiveFlag = FALSE; /* TROELS */
 	CPC_Finish();
-
+	
 	Render_Finish();
-/*
+
 #ifndef CPC_NODEBUGGER
 	Debug_Finish();
-#endif*/
-}
+#endif
+}	
 
 BOOL	CPCEmulation_CheckEndianness(void)
 {
@@ -519,7 +495,7 @@ BOOL	CPCEmulation_CheckEndianness(void)
 #ifdef CPC_LSB_FIRST
 	EndianCorrect = FALSE;
 	if (TestLong == 1)
-	{
+	{	
 		/* on little endian, long = 1 */
 		EndianCorrect = TRUE;
 	}

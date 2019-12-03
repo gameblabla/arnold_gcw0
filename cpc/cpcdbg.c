@@ -18,7 +18,7 @@
  *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
 #include "z80/z80.h"
-//#include "debugmain.h"
+#include "debugmain.h"
 #include "cpc.h"
 
 void    CPC_DumpRamToBuffer(char *pBuffer)
@@ -119,16 +119,6 @@ void    DebugHooks_ReadMemory_Active(BOOL State)
 
 #if 0
 #ifdef DEBUG_HOOKS
-
-
-static char *IO_ID_Text[]=
-{
-        "Escritura en Gate Array",
-        "Seleccionar Rom de expansión",
-        "Escribir datos en CRTC",
-        "Escribir registro en CRTC"
-};
-
 
 static char *IO_ID_Text[]=
 {

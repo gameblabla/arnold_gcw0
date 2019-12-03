@@ -28,7 +28,7 @@ void Config464Plus();
 void Config6128Plus();
 void ConfigKCCompact();
 
-void SaveFile(const char *,const unsigned char *pPtr, unsigned long
+void SaveFile(const char *,const unsigned char *pPtr, unsigned long 
 Length);
 
 
@@ -113,15 +113,15 @@ void write_disk(int drive)
 	unsigned long Length;
 
 	Length = DiskImage_CalculateOutputSize(drive);
-
+		
 	pBuffer = malloc(Length);
 	if (pBuffer)
 	{
 		DiskImage_GenerateOutputData(pBuffer, drive);
 		SaveFile("test.dsk",pBuffer,Length);
 
-		free(pBuffer);
-	}
+		free(pBuffer);	
+	}	
 }
 
 
@@ -131,10 +131,10 @@ void save_disk_and_insert( GtkWidget *w, GtkWindow *dialog, int drive,
 
 	write_disk(drive);
 	DiskImage_RemoveDisk(drive);
-
+	
 	if (!GenericInterface_InsertDiskImage( drive, filename )) {
 		printf("Failed to open disk image %s.\r\n", filename);
-	}
+	} 
 }
 
 void dont_save_disk_and_insert( GtkWidget *w, GtkWindow *dialog, int drive,
@@ -145,7 +145,7 @@ void dont_save_disk_and_insert( GtkWidget *w, GtkWindow *dialog, int drive,
 
 	if (!GenericInterface_InsertDiskImage( drive, filename )) {
 		printf("Failed to open disk image %s.\r\n", filename);
-	}
+	} 
 }
 
 void save_diskA_and_insert( GtkWidget *w, GtkWindow *dialog) {
@@ -213,7 +213,7 @@ void choosen_disk( GtkWidget *w, GtkFileSelection *fs, int drive ) {
 	}*/
 	if (!GenericInterface_InsertDiskImage( drive, filename )) {
 		printf(Messages[74], filename);
-	}
+	} 
 #endif
 	get_filename_and_destroy( DSKfilename, fs );
 
@@ -232,12 +232,12 @@ void choosen_disk( GtkWidget *w, GtkFileSelection *fs, int drive ) {
 			DiskImage_RemoveDisk(drive);
 			if (!GenericInterface_InsertDiskImage( drive, DSKfilename )) {
 				printf("Failed to open disk image %s.\r\n", DSKfilename);
-			}
+			} 
 		}
 	} else {
 		if (!GenericInterface_InsertDiskImage( drive, DSKfilename )) {
 			printf("Failed to open disk image %s.\r\n", DSKfilename);
-		}
+		} 
 	}
 
 }
@@ -260,7 +260,7 @@ void choosen_cartridge( GtkWidget *w, GtkFileSelection *fs ) {
 
 	if (!GenericInterface_InsertCartridge( filename )) {
 		printf(Messages[75], filename);
-	}
+	} 
 
 }
 
@@ -271,7 +271,7 @@ void choosen_tape( GtkWidget *w, GtkFileSelection *fs ) {
 
 	if (!GenericInterface_InsertTape( filename )) {
 		printf(Messages[73], filename);
-	}
+	} 
 
 }
 
@@ -282,7 +282,7 @@ void choosen_loadsnap( GtkWidget *w, GtkFileSelection *fs ) {
 
 	if (!GenericInterface_LoadSnapshot( filename )) {
 		printf(Messages[89], filename);
-	}
+	} 
 
 }
 
@@ -304,7 +304,7 @@ void choosen_savesnap( GtkWidget *w, GtkFileSelection *fs ) {
 	nSize = 128;
 	if (!GenericInterface_SnapshotSave( filename,3,nSize )) {
 		printf(Messages[90], filename);
-	}
+	} 
 	cpcPaused = FALSE;
 
 }
@@ -349,7 +349,7 @@ void choose_media( GtkWidget *widget, gpointer data ) {
 	/* open a file selector */
 	filew = gtk_file_selection_new( title );
 
-	/* set the directory to start from */
+	/* set the directory to start from */	
 	if (dir)
 		gtk_file_selection_set_filename ( (GtkFileSelection *) filew, dir);
 
@@ -370,7 +370,7 @@ void reset( GtkWidget *widget, gpointer data ) {
 	CPC_Reset();
 }
 
-void mfstop(GtkWidget *widget, gpointer data)
+void mfstop(GtkWidget *widget, gpointer data) 
 {
 	Multiface_Stop();
 }
@@ -421,8 +421,7 @@ void audio( GtkWidget *widget, gpointer data ) {
 #ifdef HAVE_SDL
 	BOOL state = gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(data));
 	fprintf(stderr,"Audio: %i\n", state);
-	/* fps=0 keeps the previous value */
-	CPC_SetAudioActive(state,0);
+	CPC_SetAudioActive(state);
 	if (state) {
 		Host_AudioPlaybackPossible();
 	} else {
@@ -758,7 +757,7 @@ void gtkui_init( int argc, char **argv ) {
 	option_menu_mousetype = make_option_menu_in_box( make_menu (
 		MOUSETYPESTRINGS, choose_mousetype ), box_settings );
 
-	// KEV: temp. Andreas please fix
+	// KEV: temp. Andreas please fix 
 	{
 		char label[256];
 		sprintf(label, "F1 - %s\nF2 - Fullscreen\nF3 - Grab Mouse\nF4 - %s",Messages[99],Messages[100]);
@@ -818,7 +817,6 @@ void gtkui_init( int argc, char **argv ) {
 
 int idlerun( gpointer data ) {
 		//fprintf(stderr,".");
-	//printf("Running emu at %d\n",(int)time(NULL));
 	if (!cpcPaused) CPCEmulation_Run();
 		return TRUE;
 }
@@ -826,15 +824,15 @@ int idlerun( gpointer data ) {
 #if 0
 gboolean expose_event(GtkWidget *widget, GtkEventExpose *event, gpointer data)
 {
-	gtk_window_clear_area(widget->window, event->area.x,
+	gtk_window_clear_area(widget->window, event->area.x, 
 event->area.y, event->area.width, event->area.height);
 	gtk_gc_set_clip_rectangle(widget->style->fg_gc[widget->state],
 	&event->area);
 
 	/* draw the memory dump text */
+	
 
-
-	gtk_gc_set_clip_rectangle(widget->style_.fg_gc[widget->state],
+	gtk_gc_set_clip_rectangle(widget->style_.fg_gc[widget->state], 
 NULL);
 
 }
@@ -842,7 +840,7 @@ NULL);
 void memdump_window()
 {
 	GtkWindow *window;
-	GtkDrawingArea *drawingArea;
+	GtkDrawingArea *drawingArea;	
 	/* create a new window */
 	window = gtk_window_new(GTK_WINDOW_POPUP);
 	/* set title of window */
@@ -850,7 +848,7 @@ void memdump_window()
 
 	drawingArea = gtk_drawing_area_new();
 	gtk_signal_connect(GTK_OBJECT(drawing_area);
-
+	
 	gtk_container_add((GtkContainer *)window, drawing_area);
 }
 #endif

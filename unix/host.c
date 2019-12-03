@@ -1,6 +1,6 @@
-/*
+/* 
  *  Arnold emulator (c) Copyright, Kevin Thacker 1995-2001
- *
+ *  
  *  This file is part of the Arnold emulator source code distribution.
  *
  *  This program is free software; you can redistribute it and/or modify
@@ -35,7 +35,6 @@
 #include "alsasound.h"
 #include "alsasound-mmap.h"
 #include "alsasound-common.h"
-#include "pulseaudiosound.h"
 #include "global.h"
 #include "sound.h"
 
@@ -45,15 +44,13 @@
 //#define USE_OSS_SOUND
 #endif
 
-#if 0
-#define SOUND_PLUGIN_OSS 1
-#define SOUND_PLUGIN_ALSA 2
-#define SOUND_PLUGIN_ALSA_MMAP 3
-#define SOUND_PLUGIN_SDL 4
-#define SOUND_PLUGIN_PULSE 5
+#ifdef HAVE_ALSA
+# define SOUND_PLUGIN_DEFAULT SOUND_PLUGIN_ALSA
+#else
+# define SOUND_PLUGIN_DEFAULT SOUND_PLUGIN_SDL
 #endif
 
-int sound_plugin = SOUND_PLUGIN_ALSA;
+int sound_plugin = SOUND_PLUGIN_DEFAULT;
 
 static GRAPHICS_BUFFER_INFO BufferInfo;
 static GRAPHICS_BUFFER_COLOUR_FORMAT BufferColourFormat;
@@ -89,7 +86,7 @@ BOOL	Host_SetDisplay(int Type, int Width, int Height, int Depth)
 }
 
 
-BOOL	Host_LockGraphicsBuffer(void);
+BOOL	Host_LockGraphicsBuffer(void);	
 GRAPHICS_BUFFER_INFO	*Host_GetGraphicsBufferInfo(void);
 void	Host_UnlockGraphicsBuffer(void);
 void	Host_SetPaletteEntry(int, unsigned char, unsigned char, unsigned char);
@@ -153,7 +150,7 @@ void	Host_SetPaletteEntry(int Index, unsigned char R, unsigned char G, unsigned 
 void	Host_WriteDataToSoundBuffer(unsigned char *pData, unsigned long Length)
 {
 	fprintf(stderr,".\n");
-}
+}		
 
 /*
 BOOL	Host_open_audio(SDL_AudioSpec *audioSpec) {
@@ -170,22 +167,15 @@ void	Host_close_audio(void) {
 		case SOUND_PLUGIN_OSS:
 			oss_close_audio();
 			break;
-#ifdef HAVE_ALSA
 		case SOUND_PLUGIN_ALSA:
 			alsa_close_audio();
 			break;
 		case SOUND_PLUGIN_ALSA_MMAP:
 			alsa_mmap_close_audio();
 			break;
-#endif
 		case SOUND_PLUGIN_SDL:
 			sdl_close_audio();
 			break;
-#ifdef HAVE_PULSE
-		case SOUND_PLUGIN_PULSE:
-			pulseaudio_close_audio();
-			break;
-#endif
 	}
 }
 
@@ -195,7 +185,6 @@ BOOL	Host_AudioPlaybackPossible(void)
 		case SOUND_PLUGIN_OSS:
 			return oss_AudioPlaybackPossible();
 			break;
-#ifdef HAVE_ALSA
 		case SOUND_PLUGIN_ALSA:
 			return alsa_AudioPlaybackPossible();
 			alsa_close_audio();
@@ -204,16 +193,10 @@ BOOL	Host_AudioPlaybackPossible(void)
 			return alsa_mmap_AudioPlaybackPossible();
 			alsa_mmap_close_audio();
 			break;
-#endif
 		case SOUND_PLUGIN_SDL:
 			return sdl_AudioPlaybackPossible();
 			sdl_close_audio();
 			break;
-#ifdef HAVE_PULSE
-		case SOUND_PLUGIN_PULSE:
-			return pulseaudio_AudioPlaybackPossible();
-			pulseaudio_close_audio();
-#endif
 		default:
 			return FALSE;
 			break;
@@ -226,7 +209,6 @@ SOUND_PLAYBACK_FORMAT *Host_GetSoundPlaybackFormat(void)
 		case SOUND_PLUGIN_OSS:
 			return oss_GetSoundPlaybackFormat();
 			break;
-#ifdef HAVE_ALSA
 		case SOUND_PLUGIN_ALSA:
 			return alsa_GetSoundPlaybackFormat();
 			alsa_close_audio();
@@ -235,17 +217,10 @@ SOUND_PLAYBACK_FORMAT *Host_GetSoundPlaybackFormat(void)
 			return alsa_mmap_GetSoundPlaybackFormat();
 			alsa_mmap_close_audio();
 			break;
-#endif
 		case SOUND_PLUGIN_SDL:
 			return sdl_GetSoundPlaybackFormat();
 			sdl_close_audio();
 			break;
-#ifdef HAVE_PULSE
-		case SOUND_PLUGIN_PULSE:
-			return pulseaudio_GetSoundPlaybackFormat();
-			pulseaudio_close_audio();
-			break;
-#endif
 		default:
 			return NULL;
 			break;
@@ -256,7 +231,7 @@ BOOL XWindows_ProcessSystemEvents();
 
 
 BOOL	Host_ProcessSystemEvents(void)
-{
+{	
 	/* Always break out of main loop when using GTK+, because GTK+ has it's
 	 * own event loop. */
 #ifdef HAVE_GTK
@@ -266,7 +241,7 @@ BOOL	Host_ProcessSystemEvents(void)
 	XWindows_ProcessSystemEvents();		/* no SDL /    GTK+ */
 #endif
 	return TRUE;	/* always break if we use GTK+ */
-#elif HAVE_SDL
+#elif HAVE_SDL 
 	return sdl_ProcessSystemEvents();	/* SDL    / no GTK+ */
 #else
 	return XWindows_ProcessSystemEvents();  /* no SDL / no GTK+ */
@@ -336,13 +311,12 @@ void	Host_Throttle(void)
 BOOL	Host_LockAudioBuffer(unsigned char **pBlock1, unsigned long
 *pBlock1Size, unsigned char **pBlock2, unsigned long *pBlock2Size, int
 AudioBufferSize)
-{
+{	
 	switch(sound_plugin) {
 		case SOUND_PLUGIN_OSS:
 			return oss_LockAudioBuffer(pBlock1, pBlock1Size,
 				pBlock2, pBlock2Size, AudioBufferSize);
 			break;
-#ifdef HAVE_ALSA
 		case SOUND_PLUGIN_ALSA:
 			return alsa_LockAudioBuffer(pBlock1, pBlock1Size,
 				pBlock2, pBlock2Size, AudioBufferSize);
@@ -353,19 +327,11 @@ AudioBufferSize)
 				pBlock2, pBlock2Size, AudioBufferSize);
 			alsa_mmap_close_audio();
 			break;
-#endif
 		case SOUND_PLUGIN_SDL:
 			return sdl_LockAudioBuffer(pBlock1, pBlock1Size,
 				pBlock2, pBlock2Size, AudioBufferSize);
 			sdl_close_audio();
 			break;
-#ifdef HAVE_PULSE
-		case SOUND_PLUGIN_PULSE:
-			return pulseaudio_LockAudioBuffer(pBlock1, pBlock1Size,
-				pBlock2, pBlock2Size, AudioBufferSize);
-			pulseaudio_close_audio();
-			break;
-#endif
 		default:
 			return FALSE;
 			break;
@@ -378,22 +344,15 @@ void	Host_UnLockAudioBuffer(void)
 		case SOUND_PLUGIN_OSS:
 			oss_UnLockAudioBuffer();
 			break;
-#ifdef HAVE_ALSA
 		case SOUND_PLUGIN_ALSA:
 			alsa_UnLockAudioBuffer();
 			break;
 		case SOUND_PLUGIN_ALSA_MMAP:
 			alsa_mmap_UnLockAudioBuffer();
 			break;
-#endif
 		case SOUND_PLUGIN_SDL:
 			sdl_UnLockAudioBuffer();
 			break;
-#ifdef HAVE_PULSE
-		case SOUND_PLUGIN_PULSE:
-			pulseaudio_UnLockAudioBuffer();
-			break;
-#endif
 		default:
 			break;
 	}

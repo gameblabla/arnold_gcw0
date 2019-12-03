@@ -1,3 +1,5 @@
+
+
 /* 
  *  Arnold emulator (c) Copyright, Kevin Thacker 1995-2001
  *  
@@ -17,17 +19,11 @@
  *  along with this program; if not, write to the Free Software
  *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
-#ifndef __VOC_HEADER_INCLUDED__
-#define __VOC_HEADER_INCLUDED__
+#ifndef __MAKE_TRACK_HEADER_INCLUDED__
+#define __MAKE_TRACK_HEADER_INCLUDED__
 
-#include "sampload.h"
-
-BOOL	VOC_Validate(const char *);
-void	VOC_Open(SAMPLE_AUDIO_STREAM *);
-unsigned char VOC_GetDataByte(SAMPLE_AUDIO_STREAM *pAudioStream);
-
-
-
-
+void MakeTrack(char *);
+void	MakeTrack_AddSync(char **pTrackData);
+void	FDC_CRC_Init(void);
 
 #endif
