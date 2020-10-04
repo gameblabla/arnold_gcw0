@@ -50,6 +50,8 @@
 # define SOUND_PLUGIN_DEFAULT SOUND_PLUGIN_SDL
 #endif
 
+char	currentDir[MAXCURDIR];
+
 int sound_plugin = SOUND_PLUGIN_DEFAULT;
 
 static GRAPHICS_BUFFER_INFO BufferInfo;

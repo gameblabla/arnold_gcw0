@@ -1,6 +1,6 @@
 # Makefile for Arnold
 
-CC = /opt/gcw0-toolchain-static/bin/mipsel-linux-gcc
+CC = /opt/gcw0-toolchain/bin/mipsel-linux-gcc
 BIND = $(CC)
 #   CFLAGS    flags for C compile
 #   LFLAGS1   flags after output file spec, before obj file list
@@ -18,6 +18,9 @@ ALSALIB =  -lasound -lm
 CFLAGS = -Ofast -DCPC_NODEBUGGER -flto -mips32r2 -DHAVE_ALSA $(SDLINC) $(ALSAINC) -DPACKAGE_NAME=\"\" -DPACKAGE_TARNAME=\"\" -DPACKAGE_VERSION=\"\" -DPACKAGE_STRING=\"\" -DPACKAGE_BUGREPORT=\"\" -DSTDC_HEADERS=1 -DHAVE_SYS_TYPES_H=1 -DHAVE_SYS_STAT_H=1 -DHAVE_STDLIB_H=1 -DHAVE_STRING_H=1 -DHAVE_MEMORY_H=1 -DHAVE_STRINGS_H=1 -DHAVE_INTTYPES_H=1 -DHAVE_STDINT_H=1 -DHAVE_UNISTD_H=1 -DHAVE_SDL=1 -DHAVE_LIBASOUND=1 -DHAVE_SYS_SOUNDCARD_H=1 -I. -DUNIX -DCPC_LSB_FIRST -Wall -Wno-unused
 LFLAGS1 = 
 LFLAGS2 = -lc -lgcc $(SDLLIB) $(ALSALIB) -flto -s
+ifeq ($(HUGE_PAGES), 1)
+LFLAGS2		+= -Wl,-zcommon-page-size=2097152 -Wl,-zmax-page-size=2097152 -lhugetlbfs
+endif
 
 TARGET_CPU = i686
 
@@ -45,6 +48,9 @@ ROMS_BIN=	roms/amsdose/amsdos.rom,roms/cpc464e/os.rom,roms/cpc464e/basic.rom,rom
 arnold:  conditionals roms $(CPC_O) $(UNIX_O)
 	$(BIND) -Wl,-b,binary,$(ROMS_BIN),-b,$(TARGET_FMT) -o arnold $(LFLAGS1) $(CPC_O) \
 	$(UNIX_O) $(LFLAGS2)
+ifeq ($(HUGE_PAGES), 1)
+	hugeedit --text --data "./arnold"
+endif
 
 conditionals:
 TARGET_FMT=elf32-tradlittlemips

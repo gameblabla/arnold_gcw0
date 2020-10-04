@@ -208,12 +208,19 @@ void	CRTC_SetRenderState(BOOL State);
 
 void	CRTC_SetTrueColourRender(BOOL State);
 
+
+/* Gameblabla - Fix to allow it to work with LTO */
+#define CRTC_RENDER_GRAPHICS 1
+#define CRTC_RENDER_BORDER 2
+#define CRTC_RENDER_SYNC 3
+/*
 enum
 {
 	CRTC_RENDER_GRAPHICS = 1,
 	CRTC_RENDER_BORDER,
 	CRTC_RENDER_SYNC
 } CRTC_RENDER_TYPE;
+*/
 
 #define CRTC_RENDER_STAGE_START_NEW_LINE 0x0001
 #define CRTC_RENDER_STAGE_START_NEW_FRAME 0x0002

@@ -32,6 +32,9 @@ BOOL fullscreen = FALSE;	//FIXME
 BOOL toggleFullscreenLater = FALSE;
 int scale = 1;
 //int mode = SDL_SWSURFACE;
+#ifndef SDL_TRIPLEBUF
+#define SDL_TRIPLEBUF SDL_DOUBLEBUF
+#endif
 int mode = SDL_HWSURFACE|SDL_TRIPLEBUF;
 
 static INLINE void debug(char *s) {

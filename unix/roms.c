@@ -81,6 +81,15 @@ extern char _binary_roms_kcc_kccbas_rom_start[];
 extern char _binary_roms_kcc_kccbas_rom_end[];
 extern int *_binary_roms_kcc_kccbas_rom_size;
 
+rom_t		rom_amsdos;
+roms_t		roms_cpc464;
+roms_t		roms_cpc664;
+roms_t		roms_cpc6128;
+roms_t		roms_cpc6128s;
+roms_t		roms_kcc;
+cartridge_t	cartridge_cpcplus;
+
+
 /*
  * functions
  */
